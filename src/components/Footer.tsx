@@ -54,7 +54,7 @@ const Footer = () => {
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCircle2 className="w-16 h-16 text-primary mb-4" />
                 <h4 className="font-heading text-xl font-bold text-gold-light mb-2">Thank You!</h4>
-                <p className="text-sm text-gold-light/60">Your mail client has been opened. Please send the email to complete your enquiry.</p>
+                <p className="text-sm text-gold-light/60">Your message has been sent successfully to our team. We will get back to you shortly.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
