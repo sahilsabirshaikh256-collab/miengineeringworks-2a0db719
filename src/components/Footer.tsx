@@ -103,11 +103,14 @@ const Footer = () => {
                     className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors resize-none"
                   />
                 </div>
+                {error && <p className="text-sm text-red-400">{error}</p>}
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 bg-gradient-gold text-primary-foreground font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity shadow-gold text-sm"
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 bg-gradient-gold text-primary-foreground font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity shadow-gold text-sm disabled:opacity-60"
                 >
-                  <Send className="w-4 h-4" /> Send Enquiry
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {loading ? "Sending..." : "Send Enquiry"}
                 </button>
               </form>
             )}
