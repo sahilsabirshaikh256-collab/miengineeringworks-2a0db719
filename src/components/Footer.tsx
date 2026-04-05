@@ -1,21 +1,43 @@
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { products } from "@/data/products";
 
 const Footer = () => {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`Enquiry from ${formData.name}`);
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone}\n\nMessage:\n${formData.message}`
-    );
-    window.location.href = `mailto:mienginering17@gmail.com?subject=${subject}&body=${body}`;
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/mienginering17@gmail.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          message: formData.message,
+          _subject: `New Enquiry from ${formData.name} - M.I. Engineering Works`,
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      } else {
+        setError("Failed to send message. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,7 +54,7 @@ const Footer = () => {
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCircle2 className="w-16 h-16 text-primary mb-4" />
                 <h4 className="font-heading text-xl font-bold text-gold-light mb-2">Thank You!</h4>
-                <p className="text-sm text-gold-light/60">Your mail client has been opened. Please send the email to complete your enquiry.</p>
+                <p className="text-sm text-gold-light/60">Your message has been sent successfully to our team. We will get back to you shortly.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -81,11 +103,14 @@ const Footer = () => {
                     className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors resize-none"
                   />
                 </div>
+                {error && <p className="text-sm text-red-400">{error}</p>}
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 bg-gradient-gold text-primary-foreground font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity shadow-gold text-sm"
+                  disabled={loading}
+                  className="inline-flex items-center gap-2 bg-gradient-gold text-primary-foreground font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity shadow-gold text-sm disabled:opacity-60"
                 >
-                  <Send className="w-4 h-4" /> Send Enquiry
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {loading ? "Sending..." : "Send Enquiry"}
                 </button>
               </form>
             )}
