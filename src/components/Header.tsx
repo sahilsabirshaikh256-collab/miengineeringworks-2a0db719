@@ -1,12 +1,13 @@
 import { useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Menu, X, Phone, Mail } from "lucide-react";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Products", href: "#products" },
-  { label: "Specifications", href: "#specifications" },
-  { label: "Grade Chart", href: "#grade-chart" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "Products", href: "/#products" },
+  { label: "Specifications", href: "/#specifications" },
+  { label: "Grade Chart", href: "/#grade-chart" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 const Header = () => {
