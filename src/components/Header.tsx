@@ -1,16 +1,30 @@
 import { useState } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Menu, X, Phone, Mail } from "lucide-react";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "Products", href: "#products" },
-  { label: "Specifications", href: "#specifications" },
-  { label: "Grade Chart", href: "#grade-chart" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "Products", href: "/#products" },
+  { label: "Specifications", href: "/#specifications" },
+  { label: "Grade Chart", href: "/#grade-chart" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    const [path, hash] = href.split("#");
+    if (location.pathname !== "/") {
+      navigate("/" + (hash ? `#${hash}` : ""));
+    } else if (hash) {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+    }
+    setMobileOpen(false);
+  };
 
   return (
     <>
@@ -37,15 +51,15 @@ const Header = () => {
       {/* Main nav */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-gold/20 shadow-elegant">
         <div className="container flex items-center justify-between h-16 md:h-20">
-          <a href="#home" className="flex flex-col leading-tight">
+          <Link to="/" className="flex flex-col leading-tight">
             <span className="font-heading text-xl md:text-2xl font-bold text-gradient-gold">M.I. Engineering Works</span>
             <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">Premium Fastener Solutions</span>
-          </a>
+          </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
             {navLinks.map((l) => (
-              <a key={l.href} href={l.href} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-primary after:transition-all">
+              <a key={l.href} href={l.href} onClick={(e) => handleNavClick(e, l.href)} className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-primary after:transition-all">
                 {l.label}
               </a>
             ))}
@@ -61,7 +75,7 @@ const Header = () => {
         {mobileOpen && (
           <nav className="md:hidden bg-card border-t border-border pb-4">
             {navLinks.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)} className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors">
+              <a key={l.href} href={l.href} onClick={(e) => handleNavClick(e, l.href)} className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors">
                 {l.label}
               </a>
             ))}
