@@ -31,7 +31,12 @@ const ProductDetail = () => {
       <Header />
 
       {/* Breadcrumb */}
-      <div className="bg-secondary/50 border-b border-border">
+      <motion.div
+        className="bg-secondary/50 border-b border-border"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <div className="container py-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
@@ -41,86 +46,116 @@ const ProductDetail = () => {
             <span className="text-foreground font-medium">{product.name}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Product Hero */}
       <section className="py-12 md:py-20 bg-background">
         <div className="container">
-          <Link to="/#products" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors mb-8">
-            <ArrowLeft className="w-4 h-4" /> Back to Products
-          </Link>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+            <Link to="/#products" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors mb-8">
+              <ArrowLeft className="w-4 h-4" /> Back to Products
+            </Link>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
             {/* Product Image */}
             <motion.div
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 0, x: -40 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              className="bg-card rounded-xl border border-border shadow-elegant overflow-hidden"
+              transition={{ duration: 0.6, ease: "easeOut" }}
+              className="bg-card rounded-xl border border-border shadow-elegant overflow-hidden group"
             >
               <div className="aspect-square flex items-center justify-center p-8 bg-secondary/20">
-                <img
+                <motion.img
                   src={product.img}
                   alt={product.name}
                   width={600}
                   height={600}
                   className="w-full h-full object-contain"
+                  whileHover={{ scale: 1.08, rotate: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 />
               </div>
             </motion.div>
 
             {/* Product Info */}
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              transition={{ duration: 0.6, delay: 0.15 }}
               className="flex flex-col"
             >
-              <span className="text-sm font-semibold tracking-[0.2em] uppercase text-primary mb-2">
+              <motion.span
+                className="text-sm font-semibold tracking-[0.2em] uppercase text-primary mb-2"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 ASTM A193 Grade B7
-              </span>
-              <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+              </motion.span>
+              <motion.h1
+                className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+              >
                 {product.name}
-              </h1>
+              </motion.h1>
               <p className="text-sm text-muted-foreground mb-2 font-medium">{product.standard}</p>
-              <div className="gold-divider w-16 my-4" />
+              <motion.div
+                className="gold-divider w-16 my-4"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+                style={{ transformOrigin: "left" }}
+              />
               <p className="text-muted-foreground leading-relaxed mb-6">{product.description}</p>
 
               {/* Quick Specs */}
               <div className="space-y-3 mb-8">
-                <div className="flex items-start gap-3">
-                  <span className="text-sm font-semibold text-foreground min-w-[80px]">Sizes:</span>
-                  <span className="text-sm text-muted-foreground">{product.sizes}</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-sm font-semibold text-foreground min-w-[80px]">Threads:</span>
-                  <span className="text-sm text-muted-foreground">{product.threads}</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-sm font-semibold text-foreground min-w-[80px]">Length:</span>
-                  <span className="text-sm text-muted-foreground">{product.length}</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-sm font-semibold text-foreground min-w-[80px]">Material:</span>
-                  <span className="text-sm text-muted-foreground">{product.material}</span>
-                </div>
+                {[
+                  { label: "Sizes", value: product.sizes },
+                  { label: "Threads", value: product.threads },
+                  { label: "Length", value: product.length },
+                  { label: "Material", value: product.material },
+                ].map((spec, i) => (
+                  <motion.div
+                    key={spec.label}
+                    className="flex items-start gap-3"
+                    initial={{ opacity: 0, x: 15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + i * 0.08 }}
+                  >
+                    <span className="text-sm font-semibold text-foreground min-w-[80px]">{spec.label}:</span>
+                    <span className="text-sm text-muted-foreground">{spec.value}</span>
+                  </motion.div>
+                ))}
               </div>
 
               {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
+              <motion.div
+                className="flex flex-col sm:flex-row gap-3"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                <motion.a
                   href="tel:9819972301"
                   className="inline-flex items-center justify-center gap-2 bg-gradient-gold text-primary-foreground font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity shadow-gold"
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   <Phone className="w-4 h-4" /> Call for Quote
-                </a>
-                <a
+                </motion.a>
+                <motion.a
                   href="mailto:mienginering17@gmail.com"
                   className="inline-flex items-center justify-center gap-2 border border-primary text-primary font-semibold py-3 px-6 rounded-lg hover:bg-primary/5 transition-colors"
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   <Mail className="w-4 h-4" /> Email Enquiry
-                </a>
-              </div>
+                </motion.a>
+              </motion.div>
             </motion.div>
           </div>
         </div>
@@ -130,78 +165,97 @@ const ProductDetail = () => {
       <section className="py-16 bg-secondary/30">
         <div className="container">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Dimensions Table */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-card rounded-xl border border-border shadow-elegant p-6"
-            >
-              <h2 className="font-heading text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                📐 Dimensions & Properties
-              </h2>
-              <div className="space-y-3">
-                {product.dimensions.map((d) => (
-                  <div key={d.label} className="flex justify-between items-center border-b border-border pb-2 last:border-0">
-                    <span className="text-sm text-muted-foreground">{d.label}</span>
-                    <span className="text-sm font-semibold text-foreground">{d.value}</span>
+            {[
+              {
+                icon: "📐",
+                title: "Dimensions & Properties",
+                content: (
+                  <div className="space-y-3">
+                    {product.dimensions.map((d, i) => (
+                      <motion.div
+                        key={d.label}
+                        className="flex justify-between items-center border-b border-border pb-2 last:border-0"
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.05 }}
+                      >
+                        <span className="text-sm text-muted-foreground">{d.label}</span>
+                        <span className="text-sm font-semibold text-foreground">{d.value}</span>
+                      </motion.div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Available Grades */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="bg-card rounded-xl border border-border shadow-elegant p-6"
-            >
-              <h2 className="font-heading text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                🏷️ Available Grades
-              </h2>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {product.grades.map((g) => (
-                  <span
-                    key={g}
-                    className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20"
-                  >
-                    {g}
-                  </span>
-                ))}
-              </div>
-              <h3 className="font-heading text-sm font-bold text-foreground mb-3">Surface Finish</h3>
-              <ul className="space-y-2">
-                {product.finish.map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-
-            {/* Applications */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="bg-card rounded-xl border border-border shadow-elegant p-6"
-            >
-              <h2 className="font-heading text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                🏭 Applications
-              </h2>
-              <ul className="space-y-3">
-                {product.applications.map((a) => (
-                  <li key={a} className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                    {a}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
+                ),
+              },
+              {
+                icon: "🏷️",
+                title: "Available Grades",
+                content: (
+                  <>
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {product.grades.map((g, i) => (
+                        <motion.span
+                          key={g}
+                          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.05 }}
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          {g}
+                        </motion.span>
+                      ))}
+                    </div>
+                    <h3 className="font-heading text-sm font-bold text-foreground mb-3">Surface Finish</h3>
+                    <ul className="space-y-2">
+                      {product.finish.map((f) => (
+                        <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ),
+              },
+              {
+                icon: "🏭",
+                title: "Applications",
+                content: (
+                  <ul className="space-y-3">
+                    {product.applications.map((a, i) => (
+                      <motion.li
+                        key={a}
+                        className="flex items-center gap-3 text-sm text-muted-foreground"
+                        initial={{ opacity: 0, x: 10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.06 }}
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+                        {a}
+                      </motion.li>
+                    ))}
+                  </ul>
+                ),
+              },
+            ].map((card, idx) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.12, duration: 0.5 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
+                className="bg-card rounded-xl border border-border shadow-elegant p-6 hover:shadow-gold hover:border-primary/30 transition-all duration-300"
+              >
+                <h2 className="font-heading text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                  {card.icon} {card.title}
+                </h2>
+                {card.content}
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -209,30 +263,44 @@ const ProductDetail = () => {
       {/* Related Products */}
       <section className="py-16 bg-background">
         <div className="container">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">
+          <motion.h2
+            className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8 text-center"
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
             Related <span className="text-gradient-gold">Products</span>
-          </h2>
+          </motion.h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {relatedProducts.map((p) => (
-              <Link
+            {relatedProducts.map((p, i) => (
+              <motion.div
                 key={p.slug}
-                to={`/product/${p.slug}`}
-                className="group bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-300 overflow-hidden shadow-elegant hover:shadow-gold"
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
               >
-                <div className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden">
-                  <img
-                    src={p.img}
-                    alt={p.name}
-                    loading="lazy"
-                    width={256}
-                    height={256}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-3 text-center border-t border-border">
-                  <h3 className="font-heading text-sm font-semibold text-foreground">{p.name}</h3>
-                </div>
-              </Link>
+                <Link
+                  to={`/product/${p.slug}`}
+                  className="group block bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-300 overflow-hidden shadow-elegant hover:shadow-gold"
+                >
+                  <div className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden">
+                    <motion.img
+                      src={p.img}
+                      alt={p.name}
+                      loading="lazy"
+                      width={256}
+                      height={256}
+                      className="w-full h-full object-contain"
+                      whileHover={{ scale: 1.12, rotate: 2 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    />
+                  </div>
+                  <div className="p-3 text-center border-t border-border">
+                    <h3 className="font-heading text-sm font-semibold text-foreground">{p.name}</h3>
+                  </div>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>

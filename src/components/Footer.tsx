@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { products } from "@/data/products";
 
 const Footer = () => {
@@ -46,16 +47,29 @@ const Footer = () => {
       <div className="container py-16">
         <div className="grid lg:grid-cols-2 gap-10 mb-16">
           {/* Contact Form */}
-          <div className="bg-[hsl(30,10%,16%)] rounded-xl border border-[hsl(43,72%,48%,0.15)] p-8">
+          <motion.div
+            className="bg-[hsl(30,10%,16%)] rounded-xl border border-[hsl(43,72%,48%,0.15)] p-8"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <h3 className="font-heading text-2xl font-bold text-gradient-gold mb-2">Send Us a Message</h3>
             <p className="text-sm text-gold-light/50 mb-6">Fill in the details below and we'll get back to you promptly.</p>
 
             {submitted ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <CheckCircle2 className="w-16 h-16 text-primary mb-4" />
+              <motion.div
+                className="flex flex-col items-center justify-center py-12 text-center"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 200 }}
+              >
+                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 0.6 }}>
+                  <CheckCircle2 className="w-16 h-16 text-primary mb-4" />
+                </motion.div>
                 <h4 className="font-heading text-xl font-bold text-gold-light mb-2">Thank You!</h4>
                 <p className="text-sm text-gold-light/60">Your message has been sent successfully to our team. We will get back to you shortly.</p>
-              </div>
+              </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
@@ -67,7 +81,7 @@ const Footer = () => {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Your name"
-                      className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                      className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-300"
                     />
                   </div>
                   <div>
@@ -78,7 +92,7 @@ const Footer = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="your@email.com"
-                      className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                      className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-300"
                     />
                   </div>
                 </div>
@@ -89,7 +103,7 @@ const Footer = () => {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="+91 XXXXX XXXXX"
-                    className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+                    className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-300"
                   />
                 </div>
                 <div>
@@ -100,24 +114,32 @@ const Footer = () => {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Tell us about your requirements (product, size, quantity, grade...)"
-                    className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors resize-none"
+                    className="w-full bg-[hsl(30,10%,12%)] border border-[hsl(43,72%,48%,0.2)] rounded-lg px-4 py-2.5 text-sm text-gold-light placeholder:text-gold-light/30 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all duration-300 resize-none"
                   />
                 </div>
                 {error && <p className="text-sm text-red-400">{error}</p>}
-                <button
+                <motion.button
                   type="submit"
                   disabled={loading}
                   className="inline-flex items-center gap-2 bg-gradient-gold text-primary-foreground font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition-opacity shadow-gold text-sm disabled:opacity-60"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   {loading ? "Sending..." : "Send Enquiry"}
-                </button>
+                </motion.button>
               </form>
             )}
-          </div>
+          </motion.div>
 
           {/* Google Map */}
-          <div className="rounded-xl overflow-hidden border border-[hsl(43,72%,48%,0.15)]">
+          <motion.div
+            className="rounded-xl overflow-hidden border border-[hsl(43,72%,48%,0.15)]"
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <iframe
               title="M.I. Engineering Works Location"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3773.0!2d72.8185!3d18.9567!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7ce1a5e1b5555%3A0x1234567890abcdef!2sKhedwadi%2C%20Girgaon%2C%20Mumbai%2C%20Maharashtra%20400004!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
@@ -128,35 +150,32 @@ const Footer = () => {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* Footer Columns */}
         <div className="grid md:grid-cols-3 gap-12 border-t border-[hsl(43,72%,48%,0.1)] pt-12">
-          {/* Brand */}
-          <div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <h3 className="font-heading text-2xl font-bold text-gradient-gold mb-4">M.I. Engineering Works</h3>
             <p className="text-sm leading-relaxed text-gold-light/60">
               Trusted manufacturer and supplier of ASTM A193 Grade B7 fasteners for high-temperature and high-pressure service applications.
             </p>
-          </div>
+          </motion.div>
 
-          {/* Products */}
-          <div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.1 }}>
             <h4 className="font-heading text-lg font-semibold text-gold-light mb-4">Our Products</h4>
             <ul className="space-y-2 text-sm text-gold-light/60">
               {products.slice(0, 8).map((p) => (
                 <li key={p.slug}>
-                  <Link to={`/product/${p.slug}`} className="hover:text-primary transition-colors">
+                  <Link to={`/product/${p.slug}`} className="hover:text-primary transition-colors hover:translate-x-1 inline-block">
                     {p.name}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
-          {/* Contact */}
-          <div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: 0.2 }}>
             <h4 className="font-heading text-lg font-semibold text-gold-light mb-4">Contact Us</h4>
             <ul className="space-y-3 text-sm text-gold-light/60">
               <li className="flex items-start gap-2">
@@ -175,7 +194,7 @@ const Footer = () => {
                 <span>301, 01, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon, Mumbai – 400004</span>
               </li>
             </ul>
-          </div>
+          </motion.div>
         </div>
       </div>
 
