@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Menu, X, Phone, Mail } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 const navLinks = [
   { label: "Home", href: "/#home" },
@@ -51,9 +52,12 @@ const Header = () => {
       {/* Main nav */}
       <header className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-gold/20 shadow-elegant">
         <div className="container flex items-center justify-between h-16 md:h-20">
-          <Link to="/" className="flex flex-col leading-tight">
-            <span className="font-heading text-xl md:text-2xl font-bold text-gradient-gold">M.I. Engineering Works</span>
-            <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">Premium Fastener Solutions</span>
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="MI Engineering Works Logo" className="h-10 md:h-14 w-auto" />
+            <div className="flex flex-col leading-tight">
+              <span className="font-heading text-xl md:text-2xl font-bold text-gradient-gold">M.I. Engineering Works</span>
+              <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">Premium Fastener Solutions</span>
+            </div>
           </Link>
 
           {/* Desktop nav */}
