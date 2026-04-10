@@ -1,12 +1,83 @@
 import { Mail, Phone, MapPin } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
+import { useRef } from "react";
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0, scale: 1,
-    transition: { delay: i * 0.15, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
-  }),
+const cardData = [
+  {
+    icon: Mail,
+    title: "Email",
+    content: <p className="text-muted-foreground text-sm">mienginering17@gmail.com</p>,
+    href: "mailto:mienginering17@gmail.com",
+    rotate: 10,
+  },
+  {
+    icon: Phone,
+    title: "Phone",
+    content: (
+      <p className="text-muted-foreground text-sm">
+        <a href="tel:9819972301" className="hover:text-primary transition-colors block">+91 98199 72301</a>
+        <a href="tel:9137658733" className="hover:text-primary transition-colors block mt-1">+91 91376 58733</a>
+      </p>
+    ),
+    rotate: -10,
+  },
+  {
+    icon: MapPin,
+    title: "Address",
+    content: (
+      <p className="text-muted-foreground text-sm leading-relaxed">
+        301, 01, Mehar Iron Bazar,<br />
+        Iron Market, Khedwadi,<br />
+        Girgaon, Mumbai – 400004
+      </p>
+    ),
+    rotate: 10,
+  },
+];
+
+const Contact3DCard = ({ data, index }: { data: typeof cardData[0]; index: number }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotateX = useSpring(useTransform(my, [-0.5, 0.5], [10, -10]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(mx, [-0.5, 0.5], [-10, 10]), { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => { mx.set(0); my.set(0); };
+
+  const Icon = data.icon;
+  const Wrapper = data.href ? motion.a : motion.div;
+
+  return (
+    <Wrapper
+      ref={ref}
+      {...(data.href ? { href: data.href } : {})}
+      initial={{ opacity: 0, y: 40, rotateX: 20 }}
+      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.15, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: 600, rotateX, rotateY }}
+      className="bg-card rounded-lg border border-border p-8 text-center shadow-elegant hover:shadow-gold hover:border-primary/40 transition-all group cursor-pointer"
+    >
+      <motion.div
+        className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-4"
+        whileHover={{ scale: 1.15, rotate: data.rotate }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <Icon className="w-6 h-6 text-charcoal" />
+      </motion.div>
+      <h3 className="font-heading text-lg font-semibold text-foreground mb-2">{data.title}</h3>
+      {data.content}
+    </Wrapper>
+  );
 };
 
 const ContactSection = () => {
@@ -34,73 +105,9 @@ const ContactSection = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          <motion.a
-            href="mailto:mienginering17@gmail.com"
-            custom={0}
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            whileHover={{ y: -8, transition: { duration: 0.3 } }}
-            className="bg-card rounded-lg border border-border p-8 text-center shadow-elegant hover:shadow-gold hover:border-primary/40 transition-all group"
-          >
-            <motion.div
-              className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-4"
-              whileHover={{ scale: 1.15, rotate: 10 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Mail className="w-6 h-6 text-charcoal" />
-            </motion.div>
-            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">Email</h3>
-            <p className="text-muted-foreground text-sm">mienginering17@gmail.com</p>
-          </motion.a>
-
-          <motion.div
-            custom={1}
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            whileHover={{ y: -8, transition: { duration: 0.3 } }}
-            className="bg-card rounded-lg border border-border p-8 text-center shadow-elegant hover:shadow-gold hover:border-primary/40 transition-all group"
-          >
-            <motion.div
-              className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-4"
-              whileHover={{ scale: 1.15, rotate: -10 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <Phone className="w-6 h-6 text-charcoal" />
-            </motion.div>
-            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">Phone</h3>
-            <p className="text-muted-foreground text-sm">
-              <a href="tel:9819972301" className="hover:text-primary transition-colors block">+91 98199 72301</a>
-              <a href="tel:9137658733" className="hover:text-primary transition-colors block mt-1">+91 91376 58733</a>
-            </p>
-          </motion.div>
-
-          <motion.div
-            custom={2}
-            variants={cardVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            whileHover={{ y: -8, transition: { duration: 0.3 } }}
-            className="bg-card rounded-lg border border-border p-8 text-center shadow-elegant hover:shadow-gold hover:border-primary/40 transition-all group"
-          >
-            <motion.div
-              className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-4"
-              whileHover={{ scale: 1.15, rotate: 10 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <MapPin className="w-6 h-6 text-charcoal" />
-            </motion.div>
-            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">Address</h3>
-            <p className="text-muted-foreground text-sm leading-relaxed">
-              301, 01, Mehar Iron Bazar,<br />
-              Iron Market, Khedwadi,<br />
-              Girgaon, Mumbai – 400004
-            </p>
-          </motion.div>
+          {cardData.map((d, i) => (
+            <Contact3DCard key={d.title} data={d} index={i} />
+          ))}
         </div>
       </div>
     </section>
