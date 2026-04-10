@@ -52,21 +52,9 @@ const Contact3DCard = ({ data, index }: { data: typeof cardData[0]; index: numbe
   const handleMouseLeave = () => { mx.set(0); my.set(0); };
 
   const Icon = data.icon;
-  const Wrapper = data.href ? motion.a : motion.div;
 
-  return (
-    <Wrapper
-      ref={ref}
-      {...(data.href ? { href: data.href } : {})}
-      initial={{ opacity: 0, y: 40, rotateX: 20 }}
-      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.15, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ perspective: 600, rotateX, rotateY }}
-      className="bg-card rounded-lg border border-border p-8 text-center shadow-elegant hover:shadow-gold hover:border-primary/40 transition-all group cursor-pointer"
-    >
+  const inner = (
+    <>
       <motion.div
         className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center mx-auto mb-4"
         whileHover={{ scale: 1.15, rotate: data.rotate }}
