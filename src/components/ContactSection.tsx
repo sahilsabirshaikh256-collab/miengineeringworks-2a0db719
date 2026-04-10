@@ -64,7 +64,23 @@ const Contact3DCard = ({ data, index }: { data: typeof cardData[0]; index: numbe
       </motion.div>
       <h3 className="font-heading text-lg font-semibold text-foreground mb-2">{data.title}</h3>
       {data.content}
-    </Wrapper>
+    </>
+  );
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40, rotateX: 20 }}
+      whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.15, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: 600, rotateX, rotateY }}
+      className="bg-card rounded-lg border border-border p-8 text-center shadow-elegant hover:shadow-gold hover:border-primary/40 transition-all group cursor-pointer"
+    >
+      {data.href ? <a href={data.href}>{inner}</a> : inner}
+    </motion.div>
   );
 };
 
