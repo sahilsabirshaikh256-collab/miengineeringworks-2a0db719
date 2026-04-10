@@ -1,15 +1,77 @@
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Link } from "react-router-dom";
 import { products } from "@/data/products";
+import { useRef } from "react";
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
+  visible: { transition: { staggerChildren: 0.08 } },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const } },
+  hidden: { opacity: 0, y: 50, rotateX: 15, scale: 0.9 },
+  visible: {
+    opacity: 1, y: 0, rotateX: 0, scale: 1,
+    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] as const },
+  },
+};
+
+const Product3DCard = ({ product }: { product: typeof products[0] }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      variants={itemVariants}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: 800, rotateX, rotateY, transformStyle: "preserve-3d" }}
+    >
+      <Link
+        to={`/product/${product.slug}`}
+        className="group block bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-300 overflow-hidden shadow-elegant hover:shadow-gold"
+      >
+        <div className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden relative">
+          {/* Shine overlay on hover */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{ transform: "translateZ(20px)" }}
+          />
+          <motion.img
+            src={product.img}
+            alt={product.name}
+            loading="lazy"
+            width={512}
+            height={512}
+            className="w-full h-full object-contain"
+            whileHover={{ scale: 1.12, rotate: 2 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          />
+        </div>
+        <div className="p-4 text-center border-t border-border">
+          <h3 className="font-heading text-sm md:text-base font-semibold text-foreground">{product.name}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{product.standard}</p>
+        </div>
+      </Link>
+    </motion.div>
+  );
 };
 
 const ProductsSection = () => {
@@ -18,10 +80,10 @@ const ProductsSection = () => {
       <div className="container">
         <motion.div
           className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7 }}
         >
           <motion.span
             className="text-sm font-semibold tracking-[0.3em] uppercase text-primary inline-block"
@@ -52,32 +114,7 @@ const ProductsSection = () => {
           viewport={{ once: true, margin: "-50px" }}
         >
           {products.map((p) => (
-            <motion.div key={p.slug} variants={itemVariants}>
-              <Link
-                to={`/product/${p.slug}`}
-                className="group block bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-300 overflow-hidden shadow-elegant hover:shadow-gold"
-              >
-                <motion.div
-                  className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden"
-                  whileHover={{ backgroundColor: "hsl(40 30% 94%)" }}
-                >
-                  <motion.img
-                    src={p.img}
-                    alt={p.name}
-                    loading="lazy"
-                    width={512}
-                    height={512}
-                    className="w-full h-full object-contain"
-                    whileHover={{ scale: 1.12, rotate: 2 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  />
-                </motion.div>
-                <div className="p-4 text-center border-t border-border">
-                  <h3 className="font-heading text-sm md:text-base font-semibold text-foreground">{p.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{p.standard}</p>
-                </div>
-              </Link>
-            </motion.div>
+            <Product3DCard key={p.slug} product={p} />
           ))}
         </motion.div>
       </div>
