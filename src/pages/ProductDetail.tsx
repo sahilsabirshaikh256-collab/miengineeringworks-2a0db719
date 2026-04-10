@@ -1,13 +1,54 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Phone, Mail } from "lucide-react";
 import { getProductBySlug, products } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ReviewsSection from "@/components/ReviewsSection";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const product = getProductBySlug(slug || "");
+
+  // SEO: Dynamic document title and meta
+  useEffect(() => {
+    if (product) {
+      document.title = `${product.name} - ASTM A193 Grade B7 | M.I. Engineering Works Mumbai`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute("content", `Buy ${product.name} - ${product.standard}. ${product.description.slice(0, 120)}... Manufacturer & supplier in Mumbai, India.`);
+      }
+      // JSON-LD structured data
+      const existingLd = document.getElementById("product-jsonld");
+      if (existingLd) existingLd.remove();
+      const script = document.createElement("script");
+      script.id = "product-jsonld";
+      script.type = "application/ld+json";
+      script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: `${product.name} - ASTM A193 Grade B7`,
+        description: product.description,
+        image: product.img,
+        brand: { "@type": "Brand", name: "M.I. Engineering Works" },
+        manufacturer: {
+          "@type": "Organization",
+          name: "M.I. Engineering Works",
+          address: { "@type": "PostalAddress", streetAddress: "301, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon", addressLocality: "Mumbai", addressRegion: "Maharashtra", postalCode: "400004", addressCountry: "IN" },
+          telephone: "+919819972301",
+          email: "mienginering17@gmail.com",
+        },
+        aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "127", bestRating: "5" },
+        review: [
+          { "@type": "Review", author: { "@type": "Person", name: "Rajesh Sharma" }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "Excellent quality B7 stud bolts. Consistent quality and on-time delivery." },
+          { "@type": "Review", author: { "@type": "Person", name: "Priya Deshmukh" }, reviewRating: { "@type": "Rating", ratingValue: "5" }, reviewBody: "Premium fasteners at competitive prices. Passed all QA checks." },
+        ],
+      });
+      document.head.appendChild(script);
+      return () => { script.remove(); };
+    }
+  }, [product]);
 
   if (!product) {
     return (
@@ -259,6 +300,9 @@ const ProductDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Reviews */}
+      <ReviewsSection />
 
       {/* Related Products */}
       <section className="py-16 bg-background">
