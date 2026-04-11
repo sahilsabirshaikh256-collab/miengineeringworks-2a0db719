@@ -6,6 +6,7 @@ import { getProductBySlug, products } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ReviewsSection from "@/components/ReviewsSection";
+import PageTransition from "@/components/PageTransition";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -14,11 +15,20 @@ const ProductDetail = () => {
   // SEO: Dynamic document title and meta
   useEffect(() => {
     if (product) {
-      document.title = `${product.name} - ASTM A193 Grade B7 | M.I. Engineering Works Mumbai`;
+      document.title = `${product.name} ASTM A193 Grade B7 | Buy from M.I. Engineering Works Mumbai`;
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
-        metaDesc.setAttribute("content", `Buy ${product.name} - ${product.standard}. ${product.description.slice(0, 120)}... Manufacturer & supplier in Mumbai, India.`);
+        metaDesc.setAttribute("content", `Buy ${product.name} ASTM A193 Grade B7 - ${product.standard}. ${product.sizes}. ${product.description.slice(0, 100)}... Top manufacturer & supplier in Mumbai, India. Call +91-9819972301.`);
       }
+      // Dynamic keywords
+      let metaKeywords = document.querySelector('meta[name="keywords"]');
+      if (!metaKeywords) {
+        metaKeywords = document.createElement("meta");
+        metaKeywords.setAttribute("name", "keywords");
+        document.head.appendChild(metaKeywords);
+      }
+      metaKeywords.setAttribute("content", `${product.name}, ${product.name} ASTM A193 B7, ${product.name} manufacturer, ${product.name} supplier Mumbai, ${product.name} India, ASTM A193 Grade B7 ${product.name}, ${product.grades.join(", ")}, ${product.name} price, buy ${product.name} online, industrial ${product.name}, M.I. Engineering Works`);
+      
       // JSON-LD structured data
       const existingLd = document.getElementById("product-jsonld");
       if (existingLd) existingLd.remove();
@@ -31,6 +41,7 @@ const ProductDetail = () => {
         name: `${product.name} - ASTM A193 Grade B7`,
         description: product.description,
         image: product.img,
+        sku: product.slug,
         brand: { "@type": "Brand", name: "M.I. Engineering Works" },
         manufacturer: {
           "@type": "Organization",
@@ -38,6 +49,13 @@ const ProductDetail = () => {
           address: { "@type": "PostalAddress", streetAddress: "301, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon", addressLocality: "Mumbai", addressRegion: "Maharashtra", postalCode: "400004", addressCountry: "IN" },
           telephone: "+919819972301",
           email: "mienginering17@gmail.com",
+        },
+        offers: {
+          "@type": "Offer",
+          availability: "https://schema.org/InStock",
+          priceCurrency: "INR",
+          priceValidUntil: "2027-12-31",
+          seller: { "@type": "Organization", name: "M.I. Engineering Works" },
         },
         aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", reviewCount: "127", bestRating: "5" },
         review: [
@@ -68,6 +86,7 @@ const ProductDetail = () => {
   const relatedProducts = products.filter((p) => p.slug !== product.slug).slice(0, 4);
 
   return (
+    <PageTransition>
     <div className="min-h-screen">
       <Header />
 
@@ -352,6 +371,7 @@ const ProductDetail = () => {
 
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

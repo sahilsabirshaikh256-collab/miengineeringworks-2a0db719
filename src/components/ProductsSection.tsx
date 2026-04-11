@@ -54,21 +54,39 @@ const Product3DCard = ({ product }: { product: typeof products[0] }) => {
             className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
             style={{ transform: "translateZ(20px)" }}
           />
+          {/* Ripple pulse on hover */}
+          <motion.div
+            className="absolute inset-0 rounded-full border-2 border-primary/20 opacity-0 group-hover:opacity-100"
+            initial={{ scale: 0.5, opacity: 0 }}
+            whileHover={{ scale: 1.5, opacity: [0, 0.4, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+          />
           <motion.img
             src={product.img}
-            alt={product.name}
+            alt={`${product.name} ASTM A193 Grade B7 - M.I. Engineering Works Mumbai`}
             loading="lazy"
             width={512}
             height={512}
             className="w-full h-full object-contain"
-            whileHover={{ scale: 1.12, rotate: 2 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            whileHover={{ scale: 1.15, rotate: 3 }}
+            whileTap={{ scale: 0.92, rotate: -2 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
           />
         </div>
-        <div className="p-4 text-center border-t border-border">
+        <motion.div
+          className="p-4 text-center border-t border-border"
+          whileHover={{ backgroundColor: "hsl(var(--primary) / 0.05)" }}
+        >
           <h3 className="font-heading text-sm md:text-base font-semibold text-foreground">{product.name}</h3>
           <p className="text-xs text-muted-foreground mt-1">{product.standard}</p>
-        </div>
+          <motion.span
+            className="inline-block mt-2 text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+            initial={{ y: 5 }}
+            whileHover={{ y: 0 }}
+          >
+            View Details →
+          </motion.span>
+        </motion.div>
       </Link>
     </motion.div>
   );
