@@ -61,6 +61,65 @@
   }
 }
 
+/* Ultra-smooth scrolling & rendering */
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* GPU-accelerate all animated elements */
+[style*="transform"],
+.shadow-elegant,
+.shadow-gold {
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Smooth all transitions globally */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth image rendering */
+img {
+  image-rendering: auto;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--secondary));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.4);
+  border-radius: 999px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.7);
+}
+
+/* Firefox smooth scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(43 72% 48% / 0.4) hsl(40 30% 95%);
+}
+
 @layer base {
   * {
     @apply border-border;
