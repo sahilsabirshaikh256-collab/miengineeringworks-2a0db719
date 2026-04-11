@@ -66,13 +66,33 @@ const GradeChartSection = () => {
   return (
     <section id="grade-chart" className="py-20 md:py-28 bg-background">
       <div className="container">
-        <div className="text-center mb-16">
-          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Reference</span>
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
+          <motion.span
+            className="text-sm font-semibold tracking-[0.3em] uppercase text-primary inline-block"
+            initial={{ opacity: 0, letterSpacing: "0.1em" }}
+            whileInView={{ opacity: 1, letterSpacing: "0.3em" }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            Reference
+          </motion.span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold mt-3 text-foreground">
             Fastener <span className="text-gradient-gold">Grade Chart</span>
           </h2>
-          <div className="gold-divider w-24 mx-auto mt-6" />
-        </div>
+          <motion.div
+            className="gold-divider w-24 mx-auto mt-6"
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          />
+        </motion.div>
 
         {/* Tabbed Grade Charts */}
         <Tabs defaultValue="bolts" className="mb-12">
