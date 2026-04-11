@@ -6,6 +6,7 @@ import { getProductBySlug, products } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ReviewsSection from "@/components/ReviewsSection";
+import PageTransition from "@/components/PageTransition";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -68,6 +69,7 @@ const ProductDetail = () => {
   const relatedProducts = products.filter((p) => p.slug !== product.slug).slice(0, 4);
 
   return (
+    <PageTransition>
     <div className="min-h-screen">
       <Header />
 
@@ -352,6 +354,7 @@ const ProductDetail = () => {
 
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 
