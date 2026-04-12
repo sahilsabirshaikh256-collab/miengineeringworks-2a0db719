@@ -71,7 +71,7 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9 }}
           >
-            M.I. Engineering Works is a trusted manufacturer and supplier of high-tensile alloy steel fasteners for high-temperature and high-pressure service applications.
+            M.I. Engineering Works — trusted ASTM A193 Grade B7 manufacturer &amp; supplier of stud bolts, hex bolts, threaded rods, anchor bolts &amp; high-tensile alloy steel fasteners for petrochemical, oil &amp; gas, and power plant applications. Based in Mumbai, India.
           </motion.p>
           <motion.div
             className="mt-10 flex flex-wrap gap-4"
