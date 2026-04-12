@@ -120,20 +120,35 @@ const ProductDetail = () => {
           <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
             {/* Product Image */}
             <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="bg-card rounded-xl border border-border shadow-elegant overflow-hidden group"
+              initial={{ opacity: 0, x: -40, rotateY: -15 }}
+              animate={{ opacity: 1, x: 0, rotateY: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="bg-card rounded-xl border border-border shadow-elegant overflow-hidden group perspective-[1200px]"
             >
-              <div className="aspect-square flex items-center justify-center p-8 bg-secondary/20">
+              <div className="aspect-square flex items-center justify-center p-8 bg-secondary/20 relative overflow-hidden">
+                {/* Animated glow ring */}
+                <motion.div
+                  className="absolute inset-0 rounded-xl"
+                  style={{ background: "conic-gradient(from 0deg, transparent, hsl(var(--primary) / 0.15), transparent, hsl(var(--primary) / 0.1), transparent)" }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                />
+                {/* Floating 3D product image */}
                 <motion.img
                   src={product.img}
-                  alt={product.name}
+                  alt={`${product.name} ASTM A193 Grade B7 - M.I. Engineering Works Mumbai`}
                   width={600}
                   height={600}
-                  className="w-full h-full object-contain"
-                  whileHover={{ scale: 1.08, rotate: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="w-full h-full object-contain relative z-10 drop-shadow-2xl"
+                  animate={{
+                    y: [0, -12, 0],
+                    rotateY: [0, 5, 0, -5, 0],
+                  }}
+                  transition={{
+                    y: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                    rotateY: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  whileHover={{ scale: 1.12, rotateY: 15, rotateX: -5 }}
                 />
               </div>
             </motion.div>
