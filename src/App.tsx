@@ -8,6 +8,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import IndustryDetail from "./pages/IndustryDetail.tsx";
+import ApplicationsPage from "./pages/ApplicationsPage.tsx";
+import SpecificationsPage from "./pages/SpecificationsPage.tsx";
+import GradeChartPage from "./pages/GradeChartPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -21,6 +24,9 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<Index />} />
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/industry/:slug" element={<IndustryDetail />} />
+        <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="/specifications" element={<SpecificationsPage />} />
+        <Route path="/grade-chart" element={<GradeChartPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

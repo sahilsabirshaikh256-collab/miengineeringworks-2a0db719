@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 const navLinks = [
   { label: "Home", href: "/#home" },
   { label: "Products", href: "/#products" },
-  { label: "Specifications", href: "/#specifications" },
-  { label: "Grade Chart", href: "/#grade-chart" },
+  { label: "Applications", href: "/applications" },
+  { label: "Specifications", href: "/specifications" },
+  { label: "Grade Chart", href: "/grade-chart" },
   { label: "Contact", href: "/#contact" },
 ];
 
@@ -17,6 +18,9 @@ const Header = () => {
   const location = useLocation();
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    // For standalone pages, use normal navigation
+    if (!href.startsWith("/#")) return;
+    
     e.preventDefault();
     const [, hash] = href.split("#");
     if (location.pathname !== "/") {
@@ -25,6 +29,11 @@ const Header = () => {
       document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
     }
     setMobileOpen(false);
+  };
+
+  const isActive = (href: string) => {
+    if (href.startsWith("/#")) return location.pathname === "/" && location.hash === `#${href.split("#")[1]}`;
+    return location.pathname === href;
   };
 
   return (
@@ -56,7 +65,7 @@ const Header = () => {
 
       {/* Main nav */}
       <motion.header
-        className="sticky top-0 z-50 bg-card/95 backdrop-blur-md border-b border-gold/20 shadow-elegant"
+        className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-primary/10 shadow-elegant"
         initial={{ y: -60 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
@@ -74,20 +83,27 @@ const Header = () => {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             {navLinks.map((l, i) => (
-              <motion.a
-                key={l.href}
-                href={l.href}
-                onClick={(e) => handleNavClick(e, l.href)}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-primary after:transition-all"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.08 }}
-                whileHover={{ y: -2 }}
-              >
-                {l.label}
-              </motion.a>
+              <motion.div key={l.href} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.08 }}>
+                {l.href.startsWith("/#") ? (
+                  <a
+                    href={l.href}
+                    onClick={(e) => handleNavClick(e, l.href)}
+                    className={`text-sm font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-primary after:transition-all ${isActive(l.href) ? "text-primary" : "text-foreground/80 hover:text-primary"}`}
+                  >
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link
+                    to={l.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`text-sm font-medium transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-primary after:transition-all ${isActive(l.href) ? "text-primary" : "text-foreground/80 hover:text-primary"}`}
+                  >
+                    {l.label}
+                  </Link>
+                )}
+              </motion.div>
             ))}
           </nav>
 
@@ -115,24 +131,41 @@ const Header = () => {
         <AnimatePresence>
           {mobileOpen && (
             <motion.nav
-              className="md:hidden bg-card border-t border-border pb-4 overflow-hidden"
+              className="md:hidden backdrop-blur-xl bg-card/95 border-t border-border pb-4 overflow-hidden"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
               {navLinks.map((l, i) => (
-                <motion.a
-                  key={l.href}
-                  href={l.href}
-                  onClick={(e) => handleNavClick(e, l.href)}
-                  className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors"
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  {l.label}
-                </motion.a>
+                l.href.startsWith("/#") ? (
+                  <motion.a
+                    key={l.href}
+                    href={l.href}
+                    onClick={(e) => { handleNavClick(e, l.href); setMobileOpen(false); }}
+                    className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors"
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    {l.label}
+                  </motion.a>
+                ) : (
+                  <motion.div
+                    key={l.href}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <Link
+                      to={l.href}
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors"
+                    >
+                      {l.label}
+                    </Link>
+                  </motion.div>
+                )
               ))}
               <motion.div
                 className="px-6 pt-3 space-y-2 text-sm"
