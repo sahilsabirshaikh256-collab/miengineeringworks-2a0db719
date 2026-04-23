@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { hashPassword, verifyPassword, signToken, requireAuth } from "./auth";
 import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema, insertMediaSchema } from "../shared/schema";
 import { generateCatalogPdf } from "./catalog-pdf";
+import { sendContactEmail } from "./mailer";
 
 const app = express();
 app.use(cors());
@@ -63,6 +64,8 @@ app.post("/api/contact", async (req, res) => {
   const parsed = insertContactSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Invalid", details: parsed.error.flatten() });
   const submission = await storage.createContact(parsed.data);
+  // Fire-and-forget email so the form responds quickly
+  sendContactEmail(parsed.data as any).catch((e) => console.error("[mailer] error:", e));
   res.json({ ok: true, id: submission.id });
 });
 
