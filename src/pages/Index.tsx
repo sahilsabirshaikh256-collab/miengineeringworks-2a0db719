@@ -5,6 +5,7 @@ import AboutSection from "@/components/AboutSection";
 import ProductsSection from "@/components/ProductsSection";
 import ApplicationsSection from "@/components/ApplicationsSection";
 import StandardsSection from "@/components/StandardsSection";
+import GallerySection from "@/components/GallerySection";
 import StatsCounter from "@/components/StatsCounter";
 import SpecificationsSection from "@/components/SpecificationsSection";
 import GradeChartSection from "@/components/GradeChartSection";
@@ -29,6 +30,7 @@ const Index = () => {
         <StatsCounter />
         <ApplicationsSection />
         <StandardsSection />
+        <GallerySection />
         <SpecificationsSection />
         <GradeChartSection />
         <ContactSection />

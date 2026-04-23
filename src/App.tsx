@@ -13,7 +13,9 @@ import SpecificationsPage from "./pages/SpecificationsPage.tsx";
 import GradeChartPage from "./pages/GradeChartPage.tsx";
 import StandardsPage from "./pages/StandardsPage.tsx";
 import StandardDetail from "./pages/StandardDetail.tsx";
+import GalleryPage from "./pages/GalleryPage.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminMedia from "./pages/admin/AdminMedia.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminProducts from "./pages/admin/AdminProducts.tsx";
 import AdminIndustries from "./pages/admin/AdminIndustries.tsx";
@@ -36,6 +38,7 @@ const AnimatedRoutes = () => {
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/standards" element={<StandardsPage />} />
         <Route path="/standards/:slug" element={<StandardDetail />} />
+        <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/specifications" element={<SpecificationsPage />} />
         <Route path="/grade-chart" element={<GradeChartPage />} />
 
@@ -44,6 +47,7 @@ const AnimatedRoutes = () => {
         <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
         <Route path="/admin/industries" element={<RequireAdmin><AdminIndustries /></RequireAdmin>} />
         <Route path="/admin/standards" element={<RequireAdmin><AdminStandards /></RequireAdmin>} />
+        <Route path="/admin/media" element={<RequireAdmin><AdminMedia /></RequireAdmin>} />
         <Route path="/admin/contacts" element={<RequireAdmin><AdminContacts /></RequireAdmin>} />
 
         <Route path="*" element={<NotFound />} />

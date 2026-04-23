@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { adminUsers, products, industries, standards, contactSubmissions } from "../shared/schema";
+import { adminUsers, products, industries, standards, contactSubmissions, media } from "../shared/schema";
 import { eq, asc, desc } from "drizzle-orm";
-import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact } from "../shared/schema";
+import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia } from "../shared/schema";
 
 export const storage = {
   // Admin
@@ -9,6 +9,16 @@ export const storage = {
     db.select().from(adminUsers).where(eq(adminUsers.username, username)).then((r) => r[0]),
   createAdmin: (username: string, passwordHash: string) =>
     db.insert(adminUsers).values({ username, passwordHash }).returning().then((r) => r[0]),
+  updateAdminPassword: (id: number, passwordHash: string) =>
+    db.update(adminUsers).set({ passwordHash }).where(eq(adminUsers.id, id)).returning().then((r) => r[0]),
+  deleteAllAdmins: () => db.delete(adminUsers),
+
+  // Media
+  listMedia: () => db.select().from(media).orderBy(asc(media.sortOrder)),
+  createMedia: (data: InsertMedia) => db.insert(media).values(data).returning().then((r) => r[0]),
+  updateMedia: (id: number, data: Partial<InsertMedia>) =>
+    db.update(media).set(data).where(eq(media.id, id)).returning().then((r) => r[0]),
+  deleteMedia: (id: number) => db.delete(media).where(eq(media.id, id)),
 
   // Products
   listProducts: () => db.select().from(products).orderBy(asc(products.sortOrder)),

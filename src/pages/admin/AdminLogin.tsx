@@ -34,8 +34,8 @@ const AdminLogin = () => {
           <p className="text-sm text-muted-foreground mt-1">M.I. Engineering Works content panel</p>
         </div>
         <label className="block mb-3">
-          <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Username</span>
-          <input value={u} onChange={(e) => setU(e.target.value)} required data-testid="input-username"
+          <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Email</span>
+          <input type="email" value={u} onChange={(e) => setU(e.target.value)} required data-testid="input-username" placeholder="miengineering17@gmail.com"
             className="mt-1 w-full bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30" />
         </label>
         <label className="block mb-5">
@@ -47,7 +47,7 @@ const AdminLogin = () => {
           className="w-full bg-gradient-gold text-charcoal font-semibold py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-60">
           {busy ? "Signing in…" : "Sign In"}
         </button>
-        <p className="text-xs text-muted-foreground mt-4 text-center">Default: <code className="bg-secondary px-1 rounded">admin</code> / <code className="bg-secondary px-1 rounded">admin123</code></p>
+        <p className="text-xs text-muted-foreground mt-4 text-center">Default: <code className="bg-secondary px-1 rounded">miengineering17@gmail.com</code> / <code className="bg-secondary px-1 rounded">6392</code></p>
       </form>
     </div>
   );

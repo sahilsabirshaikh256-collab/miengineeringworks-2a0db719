@@ -6,7 +6,8 @@ import fs from "fs";
 import multer from "multer";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, signToken, requireAuth } from "./auth";
-import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema } from "../shared/schema";
+import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema, insertMediaSchema } from "../shared/schema";
+import { generateCatalogPdf } from "./catalog-pdf";
 
 const app = express();
 app.use(cors());
@@ -113,6 +114,30 @@ app.delete("/api/admin/standards/:id", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
+// Public media (photos & videos)
+app.get("/api/media", async (_req, res) => res.json(await storage.listMedia()));
+
+// Admin: media CRUD
+app.post("/api/admin/media", requireAuth, async (req, res) => {
+  const parsed = insertMediaSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  res.json(await storage.createMedia(parsed.data));
+});
+app.patch("/api/admin/media/:id", requireAuth, async (req, res) => {
+  res.json(await storage.updateMedia(Number(req.params.id), req.body));
+});
+app.delete("/api/admin/media/:id", requireAuth, async (req, res) => {
+  await storage.deleteMedia(Number(req.params.id));
+  res.json({ ok: true });
+});
+
+// Branded company catalog PDF
+app.get("/api/catalog.pdf", (req, res) => {
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", 'inline; filename="MI-Engineering-Works-Catalog.pdf"');
+  generateCatalogPdf(res);
+});
+
 // Admin: contact submissions
 app.get("/api/admin/contacts", requireAuth, async (_req, res) => res.json(await storage.listContacts()));
 app.delete("/api/admin/contacts/:id", requireAuth, async (req, res) => {
@@ -120,14 +145,16 @@ app.delete("/api/admin/contacts/:id", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Bootstrap default admin
+// Bootstrap default admin (email-based)
 async function ensureDefaultAdmin() {
-  const username = process.env.ADMIN_USERNAME || "admin";
-  const password = process.env.ADMIN_PASSWORD || "admin123";
+  const username = process.env.ADMIN_USERNAME || "miengineering17@gmail.com";
+  const password = process.env.ADMIN_PASSWORD || "6392";
   const existing = await storage.getAdminByUsername(username);
   if (!existing) {
+    // Remove any legacy admin and create new one with desired credentials
+    await storage.deleteAllAdmins();
     await storage.createAdmin(username, await hashPassword(password));
-    console.log(`[admin] Created default admin user "${username}"`);
+    console.log(`[admin] Created admin user "${username}"`);
   }
 }
 

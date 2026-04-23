@@ -54,6 +54,16 @@ export const standards = pgTable("standards", {
   sortOrder: serial("sort_order"),
 });
 
+export const media = pgTable("media", {
+  id: serial("id").primaryKey(),
+  type: varchar("type", { length: 16 }).notNull(),
+  url: text("url").notNull(),
+  title: text("title").notNull().default(""),
+  caption: text("caption").notNull().default(""),
+  thumbnail: text("thumbnail").notNull().default(""),
+  sortOrder: serial("sort_order"),
+});
+
 export const contactSubmissions = pgTable("contact_submissions", {
   id: serial("id").primaryKey(),
   fullName: text("full_name").notNull(),
@@ -63,6 +73,10 @@ export const contactSubmissions = pgTable("contact_submissions", {
   message: text("message").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const insertMediaSchema = createInsertSchema(media).omit({ id: true, sortOrder: true });
+export type Media = typeof media.$inferSelect;
+export type InsertMedia = z.infer<typeof insertMediaSchema>;
 
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, sortOrder: true });
 export const insertIndustrySchema = createInsertSchema(industries).omit({ id: true, sortOrder: true });

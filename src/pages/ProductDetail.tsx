@@ -15,19 +15,19 @@ const ProductDetail = () => {
   // SEO: Dynamic document title and meta
   useEffect(() => {
     if (product) {
-      document.title = `${product.name} ASTM A193 Grade B7 | Buy from M.I. Engineering Works Mumbai`;
+      document.title = `${product.name} | M.I. Engineering Works`;
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
-        metaDesc.setAttribute("content", `Buy ${product.name} ASTM A193 Grade B7 - ${product.standard}. ${product.sizes}. ${product.description.slice(0, 100)}... Top manufacturer & supplier in Mumbai, India. Call +91-9819972301.`);
+        metaDesc.setAttribute("content", product.description);
       }
-      // Dynamic keywords
+      // SEO keyword = product name only
       let metaKeywords = document.querySelector('meta[name="keywords"]');
       if (!metaKeywords) {
         metaKeywords = document.createElement("meta");
         metaKeywords.setAttribute("name", "keywords");
         document.head.appendChild(metaKeywords);
       }
-      metaKeywords.setAttribute("content", `${product.name}, ${product.name} ASTM A193 B7, ${product.name} manufacturer, ${product.name} supplier Mumbai, ${product.name} India, ASTM A193 Grade B7 ${product.name}, ${product.grades.join(", ")}, ${product.name} price, buy ${product.name} online, industrial ${product.name}, M.I. Engineering Works`);
+      metaKeywords.setAttribute("content", product.name);
       
       // JSON-LD structured data
       const existingLd = document.getElementById("product-jsonld");
