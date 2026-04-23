@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, MotionConfig } from "framer-motion";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,6 +11,15 @@ import IndustryDetail from "./pages/IndustryDetail.tsx";
 import ApplicationsPage from "./pages/ApplicationsPage.tsx";
 import SpecificationsPage from "./pages/SpecificationsPage.tsx";
 import GradeChartPage from "./pages/GradeChartPage.tsx";
+import StandardsPage from "./pages/StandardsPage.tsx";
+import StandardDetail from "./pages/StandardDetail.tsx";
+import AdminLogin from "./pages/admin/AdminLogin.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminProducts from "./pages/admin/AdminProducts.tsx";
+import AdminIndustries from "./pages/admin/AdminIndustries.tsx";
+import AdminStandards from "./pages/admin/AdminStandards.tsx";
+import AdminContacts from "./pages/admin/AdminContacts.tsx";
+import RequireAdmin from "./pages/admin/RequireAdmin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -25,8 +34,18 @@ const AnimatedRoutes = () => {
         <Route path="/product/:slug" element={<ProductDetail />} />
         <Route path="/industry/:slug" element={<IndustryDetail />} />
         <Route path="/applications" element={<ApplicationsPage />} />
+        <Route path="/standards" element={<StandardsPage />} />
+        <Route path="/standards/:slug" element={<StandardDetail />} />
         <Route path="/specifications" element={<SpecificationsPage />} />
         <Route path="/grade-chart" element={<GradeChartPage />} />
+
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+        <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
+        <Route path="/admin/industries" element={<RequireAdmin><AdminIndustries /></RequireAdmin>} />
+        <Route path="/admin/standards" element={<RequireAdmin><AdminStandards /></RequireAdmin>} />
+        <Route path="/admin/contacts" element={<RequireAdmin><AdminContacts /></RequireAdmin>} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
@@ -35,16 +54,19 @@ const AnimatedRoutes = () => {
 
 const App = () => (
   <HelmetProvider>
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <AnimatedRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {/* reducedMotion="always" disables scroll-triggered & all motion animations so pages open instantly */}
+      <MotionConfig reducedMotion="always">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </MotionConfig>
+    </QueryClientProvider>
   </HelmetProvider>
 );
 

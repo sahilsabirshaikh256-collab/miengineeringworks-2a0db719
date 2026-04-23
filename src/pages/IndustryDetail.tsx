@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, ArrowRight } from "lucide-react";
-import { getIndustryBySlug, industries } from "@/data/industries";
+import { useQuery } from "@tanstack/react-query";
+import { api, type Industry } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
@@ -9,7 +9,10 @@ import { Helmet } from "react-helmet-async";
 
 const IndustryDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const industry = getIndustryBySlug(slug || "");
+  const { data: industry, isLoading } = useQuery<Industry>({ queryKey: ["/api/industries", slug], queryFn: () => api(`/api/industries/${slug}`) });
+  const { data: all } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
+
+  if (isLoading) return <PageTransition><Header /><div className="min-h-[60vh] flex items-center justify-center">Loading…</div><Footer /></PageTransition>;
 
   if (!industry) {
     return (
@@ -26,201 +29,126 @@ const IndustryDetail = () => {
     );
   }
 
-  const otherIndustries = industries.filter((i) => i.slug !== industry.slug).slice(0, 4);
+  const others = (all || []).filter((i) => i.slug !== industry.slug).slice(0, 4);
 
   return (
     <PageTransition>
       <Helmet>
-        <title>{`${industry.name} Fasteners — ASTM A193 B7 | M.I. Engineering Works Mumbai`}</title>
-        <meta name="description" content={`ASTM A193 Grade B7 fasteners for ${industry.name}. ${industry.description} Manufacturer & supplier in Mumbai, India. M.I. Engineering Works.`} />
-        <meta name="keywords" content={`ASTM A193 B7 ${industry.name} fasteners, ${industry.name} bolts, ${industry.name} stud bolts, industrial fasteners Mumbai, M.I. Engineering Works`} />
-        <link rel="canonical" href={`https://miengineeringworks.lovable.app/industry/${industry.slug}`} />
-        <script type="application/ld+json">{JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": `${industry.name} Fasteners — ASTM A193 B7`,
-          "description": industry.heroDescription,
-          "publisher": { "@type": "Organization", "name": "M.I. Engineering Works" },
-        })}</script>
+        <title>{`${industry.name} Fasteners | M.I. Engineering Works Mumbai`}</title>
+        <meta name="description" content={`${industry.description}`} />
       </Helmet>
 
       <Header />
 
       {/* Hero */}
       <section className="relative h-[50vh] md:h-[60vh] overflow-hidden">
-        <motion.img
-          src={industry.image}
-          alt={`${industry.name} — ASTM A193 B7 Fasteners`}
-          className="w-full h-full object-cover"
-          initial={{ scale: 1.1 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
-        <div className="absolute inset-0 flex items-end">
-          <div className="container pb-12 md:pb-16">
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <Link to="/applications" className="inline-flex items-center gap-2 text-primary text-sm mb-4 hover:underline">
-                <ArrowLeft className="w-4 h-4" /> All Industries
-              </Link>
-              <h1 className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold text-white">{industry.name}</h1>
-              <p className="text-white/80 mt-3 max-w-2xl text-sm md:text-base">{industry.description}</p>
-            </motion.div>
-          </div>
+        <img src={industry.image} alt={industry.name} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/30" />
+        <div className="container relative z-10 h-full flex flex-col justify-end pb-12 text-primary-foreground">
+          <Link to="/applications" data-testid="link-back-applications" className="inline-flex items-center gap-1 text-primary mb-4 hover:underline w-fit">
+            <ArrowLeft className="w-4 h-4" /> Back to Applications
+          </Link>
+          <span className="text-sm tracking-[0.3em] uppercase text-primary mb-2">Industry</span>
+          <h1 className="font-heading text-4xl md:text-6xl font-bold">{industry.name}</h1>
         </div>
       </section>
 
-      {/* Overview with glassmorphism */}
-      <section className="py-16 md:py-20 bg-background relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px]" />
-        <div className="container relative z-10">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-4xl">
-            <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-6">
-              Fastener Solutions for <span className="text-gradient-gold">{industry.name}</span>
-            </h2>
-            <p className="text-muted-foreground leading-relaxed">{industry.heroDescription}</p>
-          </motion.div>
+      {/* Hero description */}
+      <section className="py-14 md:py-20 bg-background">
+        <div className="container max-w-4xl">
+          <p className="text-base md:text-lg text-foreground/90 leading-relaxed">{industry.heroDescription || industry.description}</p>
         </div>
       </section>
 
-      {/* Grades Table with glassmorphism */}
-      <section className="py-16 md:py-20 bg-secondary/20">
-        <div className="container">
-          <motion.h2
-            className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8"
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          >
-            Recommended <span className="text-gradient-gold">Grades & Materials</span>
-          </motion.h2>
-          <motion.div
-            className="backdrop-blur-md bg-card/80 rounded-xl border border-border shadow-elegant overflow-hidden"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-primary/10">
-                    <th className="text-left p-3 md:p-4 font-heading text-sm font-semibold text-foreground border-b border-border">Grade</th>
-                    <th className="text-left p-3 md:p-4 font-heading text-sm font-semibold text-foreground border-b border-border">Specification</th>
-                    <th className="text-left p-3 md:p-4 font-heading text-sm font-semibold text-foreground border-b border-border">Typical Usage</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {industry.grades.map((g, i) => (
-                    <motion.tr
-                      key={g.grade}
-                      className="border-b border-border hover:bg-primary/5 transition-colors"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.08 }}
-                    >
-                      <td className="p-3 md:p-4 font-semibold text-primary text-sm">{g.grade}</td>
-                      <td className="p-3 md:p-4 text-muted-foreground text-sm">{g.specification}</td>
-                      <td className="p-3 md:p-4 text-foreground text-sm">{g.usage}</td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* Material Excellence / Grades */}
+      {industry.grades?.length > 0 && (
+        <section className="py-14 md:py-20 bg-secondary/20">
+          <div className="container max-w-6xl">
+            <div className="text-center mb-10">
+              <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Material Excellence</span>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mt-3 text-foreground">Recommended Grades & Specifications</h2>
+              <div className="gold-divider w-24 mx-auto mt-4" />
             </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Applications Grid */}
-      <section className="py-16 md:py-20 bg-background">
-        <div className="container">
-          <motion.h2
-            className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8"
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          >
-            Key <span className="text-gradient-gold">Applications</span>
-          </motion.h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {industry.applications.map((app, i) => (
-              <motion.div
-                key={app.name}
-                className="group relative rounded-xl overflow-hidden shadow-elegant hover:shadow-gold transition-all duration-500"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ y: -4 }}
-              >
-                <div className="aspect-video overflow-hidden">
-                  <img
-                    src={app.image}
-                    alt={`${app.name} — ${industry.name} ASTM A193 B7`}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+            <div className="grid md:grid-cols-2 gap-5">
+              {industry.grades.map((g, i) => (
+                <div key={i} className="bg-card border border-border rounded-lg p-5 hover:border-primary/40 transition shadow-elegant">
+                  <div className="font-heading text-lg font-bold text-gradient-gold">{g.grade}</div>
+                  <div className="text-sm text-foreground mt-1">{g.specification}</div>
+                  <div className="text-xs text-muted-foreground mt-2">{g.usage}</div>
                 </div>
-                <div className="p-5 backdrop-blur-sm bg-card/90 border-t border-border">
-                  <h3 className="font-heading text-lg font-semibold text-foreground">{app.name}</h3>
-                  <p className="text-muted-foreground text-sm mt-2">{app.description}</p>
-                </div>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* Applications */}
+      {industry.applications?.length > 0 && (
+        <section className="py-14 md:py-20 bg-background">
+          <div className="container max-w-6xl">
+            <div className="text-center mb-10">
+              <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Fasteners Engineered for Your Application</span>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mt-3 text-foreground">Use-Case Applications</h2>
+              <div className="gold-divider w-24 mx-auto mt-4" />
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {industry.applications.map((a, i) => (
+                <div key={i} className="bg-card rounded-lg overflow-hidden border border-border hover:border-primary/40 hover:shadow-gold transition">
+                  <img src={a.image} alt={a.name} className="aspect-[4/3] w-full object-cover" loading="lazy" />
+                  <div className="p-4">
+                    <h3 className="font-heading text-base font-semibold text-foreground">{a.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1.5">{a.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Key Requirements */}
-      <section className="py-16 md:py-20 bg-secondary/20">
-        <div className="container">
-          <motion.h2
-            className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8"
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-          >
-            Industry <span className="text-gradient-gold">Requirements</span>
-          </motion.h2>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {industry.keyRequirements.map((req, i) => (
-              <motion.div
-                key={req}
-                className="flex items-start gap-3 p-4 backdrop-blur-sm bg-card/80 rounded-xl border border-border hover:border-primary/30 hover:shadow-gold transition-all duration-300"
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                whileHover={{ x: 4 }}
-              >
-                <CheckCircle2 className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <span className="text-foreground text-sm">{req}</span>
-              </motion.div>
-            ))}
+      {industry.keyRequirements?.length > 0 && (
+        <section className="py-14 md:py-20 bg-secondary/20">
+          <div className="container max-w-4xl">
+            <div className="text-center mb-10">
+              <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Quality Standards</span>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold mt-3 text-foreground">Key Compliance Requirements</h2>
+              <div className="gold-divider w-24 mx-auto mt-4" />
+            </div>
+            <ul className="space-y-3">
+              {industry.keyRequirements.map((r, i) => (
+                <li key={i} className="flex items-start gap-3 bg-card border border-border rounded-md p-4">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-foreground">{r}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* Other Industries */}
-      <section className="py-16 md:py-20 bg-background">
-        <div className="container">
-          <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-8">
-            Explore Other <span className="text-gradient-gold">Industries</span>
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {otherIndustries.map((ind) => (
-              <Link
-                key={ind.slug}
-                to={`/industry/${ind.slug}`}
-                className="group relative rounded-xl overflow-hidden aspect-[4/3] shadow-elegant hover:shadow-gold transition-all duration-500"
-              >
-                <img src={ind.image} alt={ind.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                <div className="absolute bottom-0 p-3">
-                  <h3 className="text-white text-xs md:text-sm font-semibold">{ind.name}</h3>
-                  <span className="inline-flex items-center gap-1 text-primary text-[10px] mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    View <ArrowRight className="w-3 h-3" />
-                  </span>
-                </div>
-              </Link>
-            ))}
+      {/* Other industries */}
+      {others.length > 0 && (
+        <section className="py-14 md:py-20 bg-background">
+          <div className="container">
+            <h2 className="font-heading text-2xl md:text-3xl font-bold text-center text-foreground mb-8">Explore Other Industries</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {others.map((o) => (
+                <Link key={o.slug} to={`/industry/${o.slug}`} className="group block relative rounded-lg overflow-hidden aspect-[4/3] hover:shadow-gold transition">
+                  <img src={o.image} alt={o.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                  <div className="absolute bottom-0 p-4">
+                    <h3 className="font-heading text-white font-semibold">{o.name}</h3>
+                    <span className="inline-flex items-center gap-1 text-primary text-xs mt-1 opacity-0 group-hover:opacity-100 transition">
+                      Explore <ArrowRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <Footer />
     </PageTransition>

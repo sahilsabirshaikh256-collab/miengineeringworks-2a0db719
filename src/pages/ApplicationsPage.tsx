@@ -1,84 +1,97 @@
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-import { industries } from "@/data/industries";
+import { ArrowRight, ShieldCheck, Globe2, Layers, Award } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api, type Industry } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import { Helmet } from "react-helmet-async";
 
 const ApplicationsPage = () => {
+  const { data, isLoading } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
+  const industries = data || [];
+
   return (
     <PageTransition>
       <Helmet>
-        <title>Industrial Fastener Applications & Industries | M.I. Engineering Works Mumbai</title>
-        <meta name="description" content="ASTM A193 Grade B7 fastener applications across 12+ industries — Oil & Gas, Petrochemical, Power Generation, Construction, Marine, Aerospace & more. M.I. Engineering Works Mumbai." />
-        <meta name="keywords" content="ASTM A193 B7 applications, industrial fasteners, oil gas fasteners, petrochemical bolts, power generation fasteners, construction bolts, marine fasteners, aerospace bolts, M.I. Engineering Works" />
-        <link rel="canonical" href="https://miengineeringworks.lovable.app/applications" />
+        <title>Applications & Industries — Global Engineering Solutions | M.I. Engineering Works</title>
+        <meta name="description" content="Precision-engineered fastening solutions designed for the world's most demanding environments. Serving 50+ global industries — from aerospace to oil & gas." />
       </Helmet>
 
       <Header />
 
       {/* Hero */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-dark" />
-        <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
-        <div className="container relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Industries We Serve</span>
-            <h1 className="font-heading text-3xl md:text-5xl lg:text-6xl font-bold mt-3 text-primary-foreground">
-              Applications & <span className="text-gradient-gold">Industries</span>
-            </h1>
-            <p className="text-primary-foreground/70 mt-4 max-w-2xl mx-auto">
-              Our ASTM A193 Grade B7 fasteners serve critical applications across 12+ industries worldwide — from oil rigs to aerospace launch pads.
-            </p>
-            <motion.div className="gold-divider w-24 mx-auto mt-6" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.8, delay: 0.3 }} />
-          </motion.div>
+      <section className="relative bg-gradient-dark py-24 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 opacity-25" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=1600&q=80)", backgroundSize: "cover", backgroundPosition: "center" }} />
+        <div className="container relative z-10 text-center text-primary-foreground">
+          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary inline-block">Global Engineering Solutions</span>
+          <h1 className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold mt-3">Applications</h1>
+          <p className="max-w-3xl mx-auto text-base md:text-lg text-primary-foreground/80 mt-5">
+            Precision-engineered fastening solutions designed for the world's most demanding environments. From deep-sea extraction to aerospace exploration, we secure the future of global industry.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+            <a href="#industries" className="px-6 py-3 rounded-md bg-gradient-gold text-charcoal font-semibold hover:opacity-90 transition">Explore Industries</a>
+            <Link to="/standards" className="px-6 py-3 rounded-md border-2 border-primary text-primary font-semibold hover:bg-primary hover:text-charcoal transition">Explore Standards</Link>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-14 max-w-5xl mx-auto">
+            {[
+              { icon: Globe2, num: "50+", title: "Global Industries", sub: "Wide Coverage" },
+              { icon: ShieldCheck, num: "ISO Certified", title: "Quality", sub: "Compliance ASTM & DIN" },
+              { icon: Layers, num: "20+", title: "Core Sectors", sub: "Specialized Alloys" },
+              { icon: Award, num: "Doorstep", title: "Global Supply", sub: "Reliable Delivery" },
+            ].map(({ icon: Icon, num, title, sub }) => (
+              <div key={title} className="bg-card/10 backdrop-blur-md border border-white/10 rounded-lg p-5 text-center">
+                <Icon className="w-8 h-8 text-primary mx-auto mb-2" />
+                <div className="font-heading text-2xl font-bold text-primary">{num}</div>
+                <div className="text-sm text-primary-foreground/90 font-semibold">{title}</div>
+                <div className="text-xs text-primary-foreground/60 mt-1">{sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Intro */}
+      <section className="py-16 md:py-20 bg-background">
+        <div className="container max-w-4xl text-center">
+          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Industries Served</span>
+          <h2 className="font-heading text-3xl md:text-4xl font-bold mt-3 text-foreground">Engineering Integrity in Every Connection</h2>
+          <div className="gold-divider w-24 mx-auto mt-4" />
+          <p className="text-muted-foreground mt-6">
+            Browse our complete catalogue of industry applications. Click any sector to explore the specific fastener grades, materials, and engineering requirements we deliver.
+          </p>
         </div>
       </section>
 
       {/* Industries Grid */}
-      <section className="py-16 md:py-24 bg-background">
+      <section id="industries" className="py-10 md:py-16 bg-secondary/20">
         <div className="container">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {industries.map((industry, i) => (
-              <motion.div
-                key={industry.slug}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08, duration: 0.5 }}
-              >
+          {isLoading ? (
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {Array.from({ length: 16 }).map((_, i) => <div key={i} className="aspect-[4/3] bg-card animate-pulse rounded-lg" />)}
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {industries.map((industry) => (
                 <Link
+                  key={industry.slug}
                   to={`/industry/${industry.slug}`}
+                  data-testid={`card-industry-${industry.slug}`}
                   className="group block relative rounded-xl overflow-hidden shadow-elegant hover:shadow-gold transition-all duration-500 aspect-[4/3]"
                 >
-                  <img
-                    src={industry.image}
-                    alt={`${industry.name} - ASTM A193 B7 Fasteners`}
-                    loading="lazy"
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+                  <img src={industry.image} alt={industry.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-                  {/* Glassmorphism overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-5 md:p-6">
-                    <div className="backdrop-blur-sm bg-black/20 rounded-lg p-4 border border-white/10">
-                      <h3 className="font-heading text-white text-lg font-bold">{industry.name}</h3>
-                      <p className="text-white/60 text-xs mt-1 line-clamp-2">{industry.description}</p>
-                      <span className="inline-flex items-center gap-1 text-primary text-xs font-medium mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        View Details <ArrowRight className="w-3 h-3" />
-                      </span>
-                    </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-heading text-white text-base font-bold">{industry.name}</h3>
+                    <span className="inline-flex items-center gap-1 text-primary text-xs font-medium mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      View Details <ArrowRight className="w-3 h-3" />
+                    </span>
                   </div>
                 </Link>
-              </motion.div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

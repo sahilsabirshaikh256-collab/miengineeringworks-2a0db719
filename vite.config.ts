@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
       clientPort: 443,
     },
+    proxy: {
+      "/api": "http://localhost:3001",
+      "/uploads": "http://localhost:3001",
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

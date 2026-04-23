@@ -1,0 +1,61 @@
+import { useQuery } from "@tanstack/react-query";
+import AdminLayout from "./AdminLayout";
+import { api, type Product, type Industry, type Standard, type ContactSubmission } from "@/lib/api";
+import { Package, Factory, Award, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const AdminDashboard = () => {
+  const { data: products } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
+  const { data: industries } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
+  const { data: standards } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards") });
+  const { data: contacts } = useQuery<ContactSubmission[]>({ queryKey: ["/api/admin/contacts"], queryFn: () => api("/api/admin/contacts") });
+
+  const cards = [
+    { to: "/admin/products", label: "Products", icon: Package, count: products?.length ?? "…" },
+    { to: "/admin/industries", label: "Industries", icon: Factory, count: industries?.length ?? "…" },
+    { to: "/admin/standards", label: "Standards", icon: Award, count: standards?.length ?? "…" },
+    { to: "/admin/contacts", label: "Submissions", icon: Mail, count: contacts?.length ?? "…" },
+  ];
+
+  return (
+    <AdminLayout>
+      <h1 className="font-heading text-3xl font-bold text-foreground mb-2">Dashboard</h1>
+      <p className="text-muted-foreground mb-8">Manage all editable content for the website from here.</p>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {cards.map(({ to, label, icon: Icon, count }) => (
+          <Link key={to} to={to} className="bg-card rounded-lg border border-border p-5 hover:border-primary/40 hover:shadow-gold transition">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
+                <div className="font-heading text-3xl font-bold text-foreground mt-1">{count}</div>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-gradient-gold flex items-center justify-center">
+                <Icon className="w-5 h-5 text-charcoal" />
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-10 bg-card rounded-lg border border-border p-6">
+        <h2 className="font-heading text-lg font-bold text-foreground mb-3">Recent Contact Submissions</h2>
+        {contacts && contacts.length > 0 ? (
+          <ul className="divide-y divide-border">
+            {contacts.slice(0, 5).map((c) => (
+              <li key={c.id} className="py-3 flex justify-between items-start text-sm">
+                <div>
+                  <div className="font-semibold text-foreground">{c.fullName} <span className="text-muted-foreground font-normal">— {c.companyName || "—"}</span></div>
+                  <div className="text-muted-foreground">{c.email} · {c.phone}</div>
+                </div>
+                <span className="text-xs text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="text-sm text-muted-foreground">No submissions yet.</p>}
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default AdminDashboard;

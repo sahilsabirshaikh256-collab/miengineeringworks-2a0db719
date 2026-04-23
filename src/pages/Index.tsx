@@ -4,6 +4,7 @@ import ProductSlider from "@/components/ProductSlider";
 import AboutSection from "@/components/AboutSection";
 import ProductsSection from "@/components/ProductsSection";
 import ApplicationsSection from "@/components/ApplicationsSection";
+import StandardsSection from "@/components/StandardsSection";
 import StatsCounter from "@/components/StatsCounter";
 import SpecificationsSection from "@/components/SpecificationsSection";
 import GradeChartSection from "@/components/GradeChartSection";
@@ -27,6 +28,7 @@ const Index = () => {
         <ProductsSection />
         <StatsCounter />
         <ApplicationsSection />
+        <StandardsSection />
         <SpecificationsSection />
         <GradeChartSection />
         <ContactSection />
