@@ -1,16 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "./AdminLayout";
-import { api, type Product, type Industry, type Standard, type ContactSubmission } from "@/lib/api";
+import { api, clearToken, type Product, type Industry, type Standard, type ContactSubmission } from "@/lib/api";
 import type { Media } from "@/lib/api-extras";
-import { Package, Factory, Award, Mail, Image as ImageIcon, Video } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Package, Factory, Award, Mail, Image as ImageIcon, Video, LogOut, ShieldCheck } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
+  const nav = useNavigate();
   const { data: products } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
   const { data: industries } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
   const { data: standards } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards") });
   const { data: media } = useQuery<Media[]>({ queryKey: ["/api/media"], queryFn: () => api("/api/media") });
   const { data: contacts } = useQuery<ContactSubmission[]>({ queryKey: ["/api/admin/contacts"], queryFn: () => api("/api/admin/contacts") });
+
+  const logout = () => { clearToken(); nav("/admin/login", { replace: true }); };
 
   const photosCount = media?.filter((m) => m.type === "photo").length;
   const videosCount = media?.filter((m) => m.type === "video").length;
@@ -26,8 +29,24 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <h1 className="font-heading text-3xl font-bold text-foreground mb-2">Dashboard</h1>
-      <p className="text-muted-foreground mb-8">Manage all editable content for the website from here.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-8">
+        <div>
+          <h1 className="font-heading text-3xl font-bold text-foreground mb-1">Dashboard</h1>
+          <p className="text-muted-foreground">Manage all editable content for the website from here.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" /> Signed in
+          </span>
+          <button
+            onClick={logout}
+            data-testid="button-logout-dashboard"
+            className="inline-flex items-center gap-2 text-sm font-semibold border border-border hover:border-destructive hover:text-destructive px-3 py-2 rounded-md transition"
+          >
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
+      </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map(({ key, to, label, icon: Icon, count }) => (

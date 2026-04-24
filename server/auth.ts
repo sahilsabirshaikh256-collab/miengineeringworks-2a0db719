@@ -5,7 +5,7 @@ import type { Request, Response, NextFunction } from "express";
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 
 export const signToken = (payload: object) =>
-  jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  jwt.sign(payload, JWT_SECRET, { expiresIn: "12h" });
 
 export const verifyPassword = (plain: string, hash: string) =>
   bcrypt.compare(plain, hash);

@@ -62,6 +62,13 @@ export async function api<T = any>(path: string, opts: RequestInit = {}): Promis
   if (token) headers["Authorization"] = `Bearer ${token}`;
   const res = await fetch(path, { ...opts, headers });
   if (!res.ok) {
+    // If admin call returns 401/403, the token is stale or missing -> force re-login
+    if ((res.status === 401 || res.status === 403) && path.startsWith("/api/admin")) {
+      clearToken();
+      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/admin/login")) {
+        window.location.replace("/admin/login");
+      }
+    }
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error || `Request failed (${res.status})`);
   }
