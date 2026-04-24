@@ -1,24 +1,24 @@
 import { useState } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { Menu, X, Phone, Mail, Search, Download } from "lucide-react";
 import SearchDialog from "@/components/SearchDialog";
 import { useSiteContent } from "@/hooks/useSiteContent";
 
 const navLinks = [
-  { label: "Home", section: "home", href: "/" },
-  { label: "Products", section: "products", href: "/" },
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products" },
   { label: "Applications", href: "/applications" },
   { label: "Standards", href: "/standards" },
   { label: "Gallery", href: "/gallery" },
   { label: "Specifications", href: "/specifications" },
   { label: "Grade Chart", href: "/grade-chart" },
-  { label: "Contact", section: "contact", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const navigate = useNavigate();
   const location = useLocation();
   const { content } = useSiteContent();
   const brandName = (content["brand.name"] || "M.I. Engineering Works").trim();
@@ -39,28 +39,8 @@ const Header = () => {
     }
   };
 
-  // Smooth scroll without modifying URL hash
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleNavClick = (e: React.MouseEvent, link: typeof navLinks[number]) => {
-    setMobileOpen(false);
-    if (!link.section) return;
-    e.preventDefault();
-    if (location.pathname !== "/") {
-      navigate("/", { replace: false });
-      setTimeout(() => scrollToSection(link.section!), 80);
-    } else {
-      scrollToSection(link.section);
-    }
-  };
-
-  const isActive = (link: typeof navLinks[number]) => {
-    if (link.section) return false;
-    return location.pathname === link.href;
-  };
+  const isActive = (link: typeof navLinks[number]) =>
+    link.href === "/" ? location.pathname === "/" : location.pathname.startsWith(link.href);
 
   return (
     <>
@@ -110,27 +90,15 @@ const Header = () => {
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
             {navLinks.map((l) => (
-              <div key={l.label}>
-                {l.section ? (
-                  <a
-                    href={l.href}
-                    onClick={(e) => handleNavClick(e, l)}
-                    data-testid={`nav-${l.label.toLowerCase()}`}
-                    className="text-sm font-medium transition-colors text-foreground/80 hover:text-primary cursor-pointer"
-                  >
-                    {l.label}
-                  </a>
-                ) : (
-                  <Link
-                    to={l.href}
-                    onClick={() => setMobileOpen(false)}
-                    data-testid={`nav-${l.label.toLowerCase()}`}
-                    className={`text-sm font-medium transition-colors ${isActive(l) ? "text-primary" : "text-foreground/80 hover:text-primary"}`}
-                  >
-                    {l.label}
-                  </Link>
-                )}
-              </div>
+              <Link
+                key={l.label}
+                to={l.href}
+                onClick={() => setMobileOpen(false)}
+                data-testid={`nav-${l.label.toLowerCase()}`}
+                className={`text-sm font-medium transition-colors ${isActive(l) ? "text-primary" : "text-foreground/80 hover:text-primary"}`}
+              >
+                {l.label}
+              </Link>
             ))}
           </nav>
 
@@ -166,11 +134,7 @@ const Header = () => {
         {mobileOpen && (
           <nav className="lg:hidden backdrop-blur-xl bg-card/95 border-t border-border pb-4">
             {navLinks.map((l) => (
-              l.section ? (
-                <a key={l.label} href={l.href} onClick={(e) => handleNavClick(e, l)} className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors">{l.label}</a>
-              ) : (
-                <Link key={l.label} to={l.href} onClick={() => setMobileOpen(false)} className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors">{l.label}</Link>
-              )
+              <Link key={l.label} to={l.href} onClick={() => setMobileOpen(false)} className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors">{l.label}</Link>
             ))}
             <div className="px-6 pt-3 space-y-2 text-sm">
               <a href="/api/catalog.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-gold text-charcoal font-semibold">

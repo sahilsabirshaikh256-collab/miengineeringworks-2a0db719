@@ -14,6 +14,9 @@ import { useApplyBackgroundAnimation } from "@/hooks/useActiveAnimations";
 
 // Public pages — lazy loaded for faster initial paint
 const ProductDetail = lazy(() => import("./pages/ProductDetail.tsx"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage.tsx"));
+const AboutPage = lazy(() => import("./pages/AboutPage.tsx"));
+const ContactPage = lazy(() => import("./pages/ContactPage.tsx"));
 const IndustryDetail = lazy(() => import("./pages/IndustryDetail.tsx"));
 const ApplicationsPage = lazy(() => import("./pages/ApplicationsPage.tsx"));
 const SpecificationsPage = lazy(() => import("./pages/SpecificationsPage.tsx"));
@@ -43,6 +46,8 @@ const AdminBranding = lazy(() => import("./pages/admin/AdminBranding.tsx"));
 const AdminAnimations = lazy(() => import("./pages/admin/AdminAnimations.tsx"));
 const AdminLedger = lazy(() => import("./pages/admin/AdminLedger.tsx"));
 const AdminLedgerCustomer = lazy(() => import("./pages/admin/AdminLedgerCustomer.tsx"));
+const AdminApplications = lazy(() => import("./pages/admin/AdminApplications.tsx"));
+const AdminApplicationUseCases = lazy(() => import("./pages/admin/AdminApplicationUseCases.tsx"));
 const RequireAdmin = lazy(() => import("./pages/admin/RequireAdmin.tsx"));
 
 const queryClient = new QueryClient({
@@ -69,6 +74,9 @@ const AnimatedRoutes = () => {
       <Suspense fallback={<RouteFallback />}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<Index />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/product/:slug" element={<ProductDetail />} />
           <Route path="/industry/:slug" element={<IndustryDetail />} />
           <Route path="/applications" element={<ApplicationsPage />} />
@@ -95,6 +103,8 @@ const AnimatedRoutes = () => {
           <Route path="/admin/animations" element={<RequireAdmin><AdminAnimations /></RequireAdmin>} />
           <Route path="/admin/ledger" element={<RequireAdmin><AdminLedger /></RequireAdmin>} />
           <Route path="/admin/ledger/:name" element={<RequireAdmin><AdminLedgerCustomer /></RequireAdmin>} />
+          <Route path="/admin/applications" element={<RequireAdmin><AdminApplications /></RequireAdmin>} />
+          <Route path="/admin/applications/:slug" element={<RequireAdmin><AdminApplicationUseCases /></RequireAdmin>} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
