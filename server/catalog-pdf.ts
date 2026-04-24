@@ -1,6 +1,20 @@
 import PDFDocument from "pdfkit";
 import type { Response } from "express";
 
+export function generateCatalogPdfBuffer(): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    const writable = {
+      write: (c: Buffer) => { chunks.push(c); return true; },
+      end: () => resolve(Buffer.concat(chunks)),
+      on: () => {},
+      once: () => {},
+      emit: () => {},
+    } as any;
+    try { generateCatalogPdf(writable); } catch (e) { reject(e); }
+  });
+}
+
 const GOLD = "#C9A227";
 const CHARCOAL = "#1a1a1a";
 const MUTED = "#6b6b6b";
@@ -15,12 +29,13 @@ const COMPANY = {
   address: "301, 01, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon, Mumbai – 400004",
 };
 
+const NB = { lineBreak: false } as const;
 const drawHeader = (doc: PDFKit.PDFDocument) => {
   doc.save();
   doc.rect(0, 0, doc.page.width, 60).fill(CHARCOAL);
-  doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(18).text(COMPANY.name, 40, 20, { continued: false });
-  doc.fillColor("#fff").font("Helvetica").fontSize(8).text(COMPANY.tagline.toUpperCase(), 40, 42);
-  doc.fillColor(GOLD).fontSize(8).text(COMPANY.website, 40, 42, { align: "right", width: doc.page.width - 80 });
+  doc.fillColor(GOLD).font("Helvetica-Bold").fontSize(18).text(COMPANY.name, 40, 20, NB);
+  doc.fillColor("#fff").font("Helvetica").fontSize(8).text(COMPANY.tagline.toUpperCase(), 40, 42, NB);
+  doc.fillColor(GOLD).fontSize(8).text(COMPANY.website, doc.page.width - 200, 42, { ...NB, width: 160, align: "right" });
   doc.restore();
 };
 
@@ -28,9 +43,9 @@ const drawFooter = (doc: PDFKit.PDFDocument, pageNum: number) => {
   doc.save();
   const y = doc.page.height - 40;
   doc.rect(0, y, doc.page.width, 40).fill(CHARCOAL);
-  doc.fillColor(GOLD).fontSize(8).font("Helvetica").text(COMPANY.website, 40, y + 14);
-  doc.fillColor("#fff").fontSize(8).text(`${COMPANY.email}  |  ${COMPANY.phone1}`, 40, y + 14, { align: "center", width: doc.page.width - 80 });
-  doc.fillColor(GOLD).fontSize(8).text(`Page ${pageNum}`, 40, y + 14, { align: "right", width: doc.page.width - 80 });
+  doc.fillColor(GOLD).fontSize(8).font("Helvetica").text(COMPANY.website, 40, y + 14, NB);
+  doc.fillColor("#fff").fontSize(8).text(`${COMPANY.email}  |  ${COMPANY.phone1}`, doc.page.width / 2 - 130, y + 14, { ...NB, width: 260, align: "center" });
+  doc.fillColor(GOLD).fontSize(8).text(`Page ${pageNum}`, doc.page.width - 80, y + 14, { ...NB, width: 50, align: "right" });
   doc.restore();
 };
 
@@ -82,13 +97,34 @@ const drawTable = (
   doc.y = y + 6;
 };
 
-export function generateCatalogPdf(stream: Response) {
-  const doc = new PDFDocument({ size: "A4", margins: { top: 80, bottom: 60, left: 40, right: 40 } });
-  let pageNum = 1;
-  doc.on("pageAdded", () => { pageNum++; drawHeader(doc); drawFooter(doc, pageNum); });
+export function generateCatalogPdf(stream: Response | NodeJS.WritableStream) {
+  const doc = new PDFDocument({ size: "A4", margins: { top: 80, bottom: 60, left: 40, right: 40 }, autoFirstPage: false });
+  let pageNum = 0;
+  let drawing = false;
+  const decorate = () => {
+    if (drawing) return;
+    drawing = true;
+    try { drawHeader(doc); drawFooter(doc, pageNum); } finally { drawing = false; }
+  };
+  doc.on("pageAdded", () => { pageNum++; decorate(); });
 
-  doc.pipe(stream);
-  drawHeader(doc); drawFooter(doc, pageNum);
+  // Collect chunks and write once at end so dev-proxy and browsers receive it cleanly
+  const chunks: Buffer[] = [];
+  doc.on("data", (c: Buffer) => chunks.push(c));
+  doc.on("end", () => {
+    const buf = Buffer.concat(chunks);
+    if ((stream as Response).status) {
+      const res = stream as Response;
+      res.setHeader("Content-Length", String(buf.length));
+      res.end(buf);
+    } else {
+      (stream as any).write(buf);
+      (stream as any).end();
+    }
+  });
+
+  // First page (autoFirstPage off, so we add explicitly — header/footer drawn via pageAdded)
+  doc.addPage();
 
   // ---------- COVER PAGE ----------
   doc.y = 110;

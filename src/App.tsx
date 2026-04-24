@@ -16,6 +16,7 @@ import StandardDetail from "./pages/StandardDetail.tsx";
 import GalleryPage from "./pages/GalleryPage.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminMedia from "./pages/admin/AdminMedia.tsx";
+import WhatsAppButton from "./components/WhatsAppButton.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminProducts from "./pages/admin/AdminProducts.tsx";
 import AdminIndustries from "./pages/admin/AdminIndustries.tsx";
@@ -67,6 +68,7 @@ const App = () => (
           <BrowserRouter>
             <ScrollToTop />
             <AnimatedRoutes />
+            <WhatsAppButton />
           </BrowserRouter>
         </TooltipProvider>
       </MotionConfig>

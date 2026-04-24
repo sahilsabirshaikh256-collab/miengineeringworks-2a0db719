@@ -127,11 +127,31 @@ img {
 
   body {
     @apply bg-background text-foreground font-body antialiased;
+    font-feature-settings: "ss01", "kern", "liga";
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading;
+    letter-spacing: -0.015em;
   }
+
+  /* Mobile-friendly base sizes */
+  html { font-size: 15px; }
+  @media (min-width: 768px) { html { font-size: 16px; } }
+
+  /* Prevent iOS zoom-on-focus for form fields */
+  input, select, textarea {
+    font-size: 16px;
+  }
+
+  /* Better tap targets on mobile */
+  @media (max-width: 767px) {
+    button, a, [role="button"] { min-height: 40px; }
+  }
+
+  /* Avoid layout shift when WhatsApp button overlaps content */
+  main, footer { padding-bottom: env(safe-area-inset-bottom); }
 }
 
 @layer utilities {

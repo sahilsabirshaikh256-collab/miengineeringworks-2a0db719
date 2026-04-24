@@ -30,12 +30,15 @@ const upload = multer({ storage: storageMulter, limits: { fileSize: 10 * 1024 * 
 
 // Auth
 app.post("/api/admin/login", async (req, res) => {
-  const { username, password } = req.body || {};
-  if (!username || !password) return res.status(400).json({ error: "Missing credentials" });
-  const u = await storage.getAdminByUsername(username);
-  if (!u || !(await verifyPassword(password, u.passwordHash))) {
-    return res.status(401).json({ error: "Invalid credentials" });
+  const { username } = req.body || {};
+  if (!username) return res.status(400).json({ error: "Email is required" });
+  const ADMIN_EMAIL = (process.env.ADMIN_USERNAME || "miengineering17@gmail.com").trim().toLowerCase();
+  const submitted = String(username || "").trim().toLowerCase();
+  if (submitted !== ADMIN_EMAIL) {
+    return res.status(401).json({ error: "Only the admin email is allowed to sign in." });
   }
+  const u = await storage.getAdminByUsername(submitted);
+  if (!u) return res.status(401).json({ error: "Admin not initialised" });
   res.json({ token: signToken({ id: u.id, username: u.username }) });
 });
 
@@ -137,7 +140,8 @@ app.delete("/api/admin/media/:id", requireAuth, async (req, res) => {
 // Branded company catalog PDF
 app.get("/api/catalog.pdf", (req, res) => {
   res.setHeader("Content-Type", "application/pdf");
-  res.setHeader("Content-Disposition", 'inline; filename="MI-Engineering-Works-Catalog.pdf"');
+  res.setHeader("Content-Disposition", 'attachment; filename="MI-Engineering-Works-Catalog.pdf"');
+  res.setHeader("Cache-Control", "public, max-age=300");
   generateCatalogPdf(res);
 });
 
