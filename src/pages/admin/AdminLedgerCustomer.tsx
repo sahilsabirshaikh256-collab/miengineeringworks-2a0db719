@@ -5,11 +5,12 @@ import { Helmet } from "react-helmet-async";
 import {
   ArrowLeft, Plus, Trash2, Loader2, Save, X, Check,
   Receipt, IndianRupee, Wallet, AlertCircle, ListChecks, RotateCcw, Pencil,
+  Phone, MapPin,
 } from "lucide-react";
 import AdminLayout from "./AdminLayout";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import type { LedgerEntry } from "@shared/schema";
+import type { Customer, LedgerEntry } from "@shared/schema";
 
 const inr = (n: number) =>
   Number.isFinite(n)
@@ -43,49 +44,46 @@ const emptyForm: FormState = {
 
 export default function AdminLedgerCustomer() {
   const params = useParams<{ name: string }>();
-  const isNew = params.name === "__new";
-  const initialName = isNew ? "" : decodeURIComponent(params.name || "");
+  const customerId = Number(params.name);
   const nav = useNavigate();
   const qc = useQueryClient();
   const { toast } = useToast();
 
-  const { data: rows = [], isLoading } = useQuery<LedgerEntry[]>({
-    queryKey: ["/api/admin/ledger"],
+  const validId = Number.isFinite(customerId) && customerId > 0;
+
+  const { data: customer, isLoading: cLoading, error: cError } = useQuery<Customer>({
+    queryKey: ["/api/admin/customers", customerId],
+    queryFn: () => api(`/api/admin/customers/${customerId}`),
+    enabled: validId,
   });
 
-  const [customerName, setCustomerName] = useState(initialName);
-  const [adding, setAdding] = useState(isNew);
+  const { data: entries = [], isLoading } = useQuery<LedgerEntry[]>({
+    queryKey: ["/api/admin/ledger", { customerId }],
+    queryFn: () => api(`/api/admin/ledger?customerId=${customerId}`),
+    enabled: validId,
+  });
+
+  const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<LedgerEntry | null>(null);
   const [form, setForm] = useState<FormState>({ ...emptyForm });
 
-  const myEntries = useMemo(() => {
-    const target = (initialName || "").trim().toLowerCase();
-    if (!target) return [];
-    return rows
-      .filter((r) => (r.customerName || "").trim().toLowerCase() === target)
-      .sort((a, b) => (a.invoiceDate || "").localeCompare(b.invoiceDate || ""));
-  }, [rows, initialName]);
-
   const totals = useMemo(() => {
     let total = 0, paid = 0;
-    for (const e of myEntries) {
+    for (const e of entries) {
       const due = num(e.amountDue);
       total += due;
       if (isPaidEntry(e)) paid += due;
     }
-    return { total, paid, pending: Math.max(0, total - paid), count: myEntries.length };
-  }, [myEntries]);
+    return { total, paid, pending: Math.max(0, total - paid), count: entries.length };
+  }, [entries]);
 
   const create = useMutation({
     mutationFn: (data: any) => api("/api/admin/ledger", { method: "POST", body: JSON.stringify(data) }),
-    onSuccess: (_d, vars: any) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/admin/ledger"] });
       setAdding(false);
       setForm({ ...emptyForm });
       toast({ title: "Entry added" });
-      if (isNew && vars?.customerName) {
-        nav(`/admin/ledger/${encodeURIComponent(vars.customerName)}`, { replace: true });
-      }
     },
     onError: (e: any) => toast({ title: "Failed", description: e.message, variant: "destructive" }),
   });
@@ -109,14 +107,14 @@ export default function AdminLedgerCustomer() {
   });
 
   const submit = () => {
-    const name = (isNew ? customerName : initialName).trim();
-    if (!name) { toast({ title: "Customer name required", variant: "destructive" }); return; }
+    if (!customer) return;
     if (!form.amountDue || num(form.amountDue) <= 0) {
       toast({ title: "Enter a valid amount", variant: "destructive" });
       return;
     }
     const payload = {
-      customerName: name,
+      customerId: customer.id,
+      customerName: customer.name,
       invoiceDate: form.invoiceDate || today(),
       invoiceNo: form.invoiceNo || "",
       amountDue: form.amountDue || "0",
@@ -155,9 +153,28 @@ export default function AdminLedgerCustomer() {
     setForm({ ...emptyForm });
   };
 
+  if (!validId) {
+    return (
+      <AdminLayout>
+        <p className="text-center text-muted-foreground py-12">Invalid customer.</p>
+      </AdminLayout>
+    );
+  }
+
+  if (cError) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground mb-4">Customer not found.</p>
+          <button onClick={() => nav("/admin/ledger")} className="text-primary underline">Back to customer list</button>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
-      <Helmet><title>{isNew ? "New Customer" : initialName} · Ledger</title></Helmet>
+      <Helmet><title>{customer?.name || "Customer"} · Ledger</title></Helmet>
 
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-6">
@@ -170,138 +187,115 @@ export default function AdminLedgerCustomer() {
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
           <div className="min-w-0">
-            {isNew ? (
-              <h1 className="font-heading text-2xl font-bold">New Customer</h1>
-            ) : (
-              <>
-                <h1 className="font-heading text-2xl font-bold truncate" data-testid="text-customer-name">{initialName}</h1>
-                <p className="text-xs text-muted-foreground">Customer ledger</p>
-              </>
+            <h1 className="font-heading text-2xl font-bold truncate" data-testid="text-customer-name">
+              {cLoading ? "…" : customer?.name}
+            </h1>
+            {customer && (
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-0.5">
+                {customer.phone && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" /> {customer.phone}</span>}
+                {customer.address && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" /> {customer.address}</span>}
+              </div>
             )}
           </div>
         </div>
-        {!isNew && (
-          <button
-            onClick={() => { setAdding(true); setEditing(null); setForm({ ...emptyForm }); }}
-            data-testid="button-add-entry"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-md hover:opacity-90"
-          >
-            <Plus className="w-4 h-4" /> New Entry
-          </button>
-        )}
+        <button
+          onClick={() => { setAdding(true); setEditing(null); setForm({ ...emptyForm }); }}
+          data-testid="button-add-entry"
+          disabled={!customer}
+          className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-4 py-2.5 rounded-md hover:opacity-90 disabled:opacity-50"
+        >
+          <Plus className="w-4 h-4" /> New Entry
+        </button>
       </div>
 
-      {/* New customer name input */}
-      {isNew && (
-        <div className="bg-card border rounded-xl p-5 mb-5">
-          <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Customer Name *</label>
-          <input
-            type="text"
-            value={customerName}
-            onChange={(e) => setCustomerName(e.target.value)}
-            placeholder="e.g. Sharma Industries"
-            data-testid="input-new-customer-name"
-            className="w-full bg-background border border-border rounded-md px-3 py-2.5 text-sm focus:outline-none focus:border-primary"
-          />
-          <p className="text-xs text-muted-foreground mt-2">Add the first entry below to create this customer.</p>
-        </div>
-      )}
-
       {/* Totals */}
-      {!isNew && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-          <Stat label="Total Amount" value={inr(totals.total)} icon={IndianRupee} tone="amber" testid="stat-total-amount" />
-          <Stat label="Total Paid" value={inr(totals.paid)} icon={Wallet} tone="green" testid="stat-total-paid" />
-          <Stat label="Total Pending" value={inr(totals.pending)} icon={AlertCircle} tone={totals.pending > 0 ? "red" : "green"} testid="stat-total-pending" />
-          <Stat label="Entries" value={String(totals.count)} icon={ListChecks} tone="blue" testid="stat-entry-count" />
-        </div>
-      )}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <Stat label="Total Amount" value={inr(totals.total)} icon={IndianRupee} tone="amber" testid="stat-total-amount" />
+        <Stat label="Total Paid" value={inr(totals.paid)} icon={Wallet} tone="green" testid="stat-total-paid" />
+        <Stat label="Total Pending" value={inr(totals.pending)} icon={AlertCircle} tone={totals.pending > 0 ? "red" : "green"} testid="stat-total-pending" />
+        <Stat label="Entries" value={String(totals.count)} icon={ListChecks} tone="blue" testid="stat-entry-count" />
+      </div>
 
       {/* Entries */}
-      {!isNew && (
-        <div className="bg-card border rounded-xl overflow-hidden">
-          <div className="overflow-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-secondary/60">
-                <tr className="text-left">
-                  <Th className="w-24">Date</Th>
-                  <Th>Invoice No.</Th>
-                  <Th className="text-right">Amount (₹)</Th>
-                  <Th className="w-32">Status</Th>
-                  <Th className="text-right w-40">Actions</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading && (
-                  <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Loading…</td></tr>
-                )}
-                {!isLoading && myEntries.length === 0 && (
-                  <tr><td colSpan={5} className="p-10 text-center text-muted-foreground">
-                    <Receipt className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                    No entries yet — click <strong>New Entry</strong> to add one.
-                  </td></tr>
-                )}
-                {myEntries.map((e) => {
-                  const paid = isPaidEntry(e);
-                  return (
-                    <tr
-                      key={e.id}
-                      data-testid={`row-entry-${e.id}`}
-                      className={`border-t border-border transition ${paid ? "bg-emerald-500/10 hover:bg-emerald-500/15" : "hover:bg-secondary/30"}`}
-                    >
-                      <Td className="text-foreground/90">{e.invoiceDate || "—"}</Td>
-                      <Td className="font-medium">{e.invoiceNo || "—"}</Td>
-                      <Td className="text-right font-bold">{inr(num(e.amountDue))}</Td>
-                      <Td>
-                        {paid ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wide">
-                            <Check className="w-3.5 h-3.5" /> Paid
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">
-                            ● Pending
-                          </span>
-                        )}
-                      </Td>
-                      <Td className="text-right whitespace-nowrap">
-                        <button
-                          onClick={() => togglePaid(e)}
-                          disabled={update.isPending}
-                          data-testid={`button-toggle-paid-${e.id}`}
-                          aria-label={paid ? "Mark as pending" : "Mark as paid"}
-                          title={paid ? "Mark as pending" : "Mark as paid"}
-                          className={`p-1.5 rounded mr-1 ${paid ? "text-emerald-600 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600"}`}
-                        >
-                          {paid ? <RotateCcw className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-                        </button>
-                        <button
-                          onClick={() => startEdit(e)}
-                          data-testid={`button-edit-entry-${e.id}`}
-                          aria-label="Edit"
-                          className="p-1.5 rounded hover:bg-primary/10 text-primary mr-1"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => { if (confirm("Delete this entry?")) remove.mutate(e.id); }}
-                          data-testid={`button-delete-entry-${e.id}`}
-                          aria-label="Delete"
-                          className="p-1.5 rounded hover:bg-destructive/10 text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </Td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+      <div className="bg-card border rounded-xl overflow-hidden">
+        <div className="overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-secondary/60">
+              <tr className="text-left">
+                <Th className="w-28">Date</Th>
+                <Th>Invoice No.</Th>
+                <Th className="text-right">Amount (₹)</Th>
+                <Th className="w-32">Status</Th>
+                <Th className="text-right w-40">Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading && (
+                <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Loading…</td></tr>
+              )}
+              {!isLoading && entries.length === 0 && (
+                <tr><td colSpan={5} className="p-10 text-center text-muted-foreground">
+                  <Receipt className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  No entries yet — click <strong>New Entry</strong> to add one.
+                </td></tr>
+              )}
+              {entries.map((e) => {
+                const paid = isPaidEntry(e);
+                return (
+                  <tr
+                    key={e.id}
+                    data-testid={`row-entry-${e.id}`}
+                    className={`border-t border-border transition ${paid ? "bg-emerald-500/10 hover:bg-emerald-500/15" : "hover:bg-secondary/30"}`}
+                  >
+                    <Td className="text-foreground/90">{e.invoiceDate || "—"}</Td>
+                    <Td className="font-medium">{e.invoiceNo || "—"}</Td>
+                    <Td className="text-right font-bold">{inr(num(e.amountDue))}</Td>
+                    <Td>
+                      {paid ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wide">
+                          <Check className="w-3.5 h-3.5" /> Paid
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">
+                          ● Pending
+                        </span>
+                      )}
+                    </Td>
+                    <Td className="text-right whitespace-nowrap">
+                      <button
+                        onClick={() => togglePaid(e)}
+                        disabled={update.isPending}
+                        data-testid={`button-toggle-paid-${e.id}`}
+                        title={paid ? "Mark as pending" : "Mark as paid"}
+                        className={`p-1.5 rounded mr-1 ${paid ? "text-emerald-600 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600"}`}
+                      >
+                        {paid ? <RotateCcw className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => startEdit(e)}
+                        data-testid={`button-edit-entry-${e.id}`}
+                        className="p-1.5 rounded hover:bg-primary/10 text-primary mr-1"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => { if (confirm("Delete this entry?")) remove.mutate(e.id); }}
+                        data-testid={`button-delete-entry-${e.id}`}
+                        className="p-1.5 rounded hover:bg-destructive/10 text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </Td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
-      {/* Add / Edit modal */}
-      {(adding || editing) && (
+      {/* Add / Edit modal — NO customer name field, customer is already selected */}
+      {(adding || editing) && customer && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={closeForm}
@@ -311,7 +305,10 @@ export default function AdminLedgerCustomer() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-lg font-bold">{editing ? "Edit Entry" : "New Entry"}</h2>
+              <div>
+                <h2 className="font-heading text-lg font-bold">{editing ? "Edit Entry" : "New Entry"}</h2>
+                <p className="text-xs text-muted-foreground">For <strong>{customer.name}</strong></p>
+              </div>
               <button onClick={closeForm} aria-label="Close" className="p-1 rounded hover:bg-secondary">
                 <X className="w-5 h-5" />
               </button>
@@ -359,7 +356,7 @@ export default function AdminLedgerCustomer() {
                   className={`${inputCls} resize-none`}
                 />
               </Field>
-              <p className="text-[11px] text-muted-foreground">New entries are saved as <strong>Pending</strong>. Use the <Check className="inline w-3 h-3 -mt-0.5" /> tick on each row to mark as paid.</p>
+              <p className="text-[11px] text-muted-foreground">New entries are saved as <strong>Pending</strong>. Use the tick on each row to mark Paid.</p>
             </div>
 
             <div className="mt-5 flex justify-end gap-2">

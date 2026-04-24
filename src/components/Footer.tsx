@@ -202,7 +202,6 @@ const Footer = () => {
               <li><Link to="/standards" className="hover:text-primary transition-colors">Standards</Link></li>
               <li><Link to="/specifications" className="hover:text-primary transition-colors">Specifications</Link></li>
               <li><Link to="/grade-chart" className="hover:text-primary transition-colors">Grade Chart</Link></li>
-              <li><Link to="/calculator" className="hover:text-primary transition-colors">Weight Calculator</Link></li>
               <li><Link to="/gallery" className="hover:text-primary transition-colors">Photos & Videos</Link></li>
               <li><a href="/api/catalog.pdf" className="hover:text-primary transition-colors">Download Catalog</a></li>
             </ul>

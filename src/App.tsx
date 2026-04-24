@@ -21,8 +21,10 @@ const GradeChartPage = lazy(() => import("./pages/GradeChartPage.tsx"));
 const StandardsPage = lazy(() => import("./pages/StandardsPage.tsx"));
 const StandardDetail = lazy(() => import("./pages/StandardDetail.tsx"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage.tsx"));
-const CalculatorPage = lazy(() => import("./pages/CalculatorPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+
+// Calculator is now an admin-only tool
+const CalculatorPage = lazy(() => import("./pages/CalculatorPage.tsx"));
 
 // Admin pages — lazy loaded (only ever opened by site owner)
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin.tsx"));
@@ -75,9 +77,9 @@ const AnimatedRoutes = () => {
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/specifications" element={<SpecificationsPage />} />
           <Route path="/grade-chart" element={<GradeChartPage />} />
-          <Route path="/calculator" element={<CalculatorPage />} />
 
           <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/calculator" element={<RequireAdmin><CalculatorPage /></RequireAdmin>} />
           <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
           <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
           <Route path="/admin/industries" element={<RequireAdmin><AdminIndustries /></RequireAdmin>} />

@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections, ledgerEntries } from "../shared/schema";
+import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections, ledgerEntries, customers } from "../shared/schema";
 import { eq, asc, desc } from "drizzle-orm";
-import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection, InsertLedger } from "../shared/schema";
+import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection, InsertLedger, InsertCustomer } from "../shared/schema";
 
 export const storage = {
   // Admin
@@ -78,8 +78,22 @@ export const storage = {
     return storage.getSiteContentMap();
   },
 
-  // Ledger / Khata
+  // Customers (Ledger / Khata)
+  listCustomers: () => db.select().from(customers).orderBy(asc(customers.name)),
+  getCustomer: (id: number) => db.select().from(customers).where(eq(customers.id, id)).then((r) => r[0]),
+  createCustomer: (data: InsertCustomer) =>
+    db.insert(customers).values(data).returning().then((r) => r[0]),
+  updateCustomer: (id: number, data: Partial<InsertCustomer>) =>
+    db.update(customers).set(data).where(eq(customers.id, id)).returning().then((r) => r[0]),
+  deleteCustomer: async (id: number) => {
+    await db.delete(ledgerEntries).where(eq(ledgerEntries.customerId, id));
+    await db.delete(customers).where(eq(customers.id, id));
+  },
+
+  // Ledger / Khata entries
   listLedger: () => db.select().from(ledgerEntries).orderBy(desc(ledgerEntries.createdAt)),
+  listLedgerByCustomer: (customerId: number) =>
+    db.select().from(ledgerEntries).where(eq(ledgerEntries.customerId, customerId)).orderBy(desc(ledgerEntries.invoiceDate)),
   createLedger: (data: InsertLedger) =>
     db.insert(ledgerEntries).values(data).returning().then((r) => r[0]),
   updateLedger: (id: number, data: Partial<InsertLedger>) =>

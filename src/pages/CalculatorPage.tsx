@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Calculator, Sun, Moon, RotateCcw, Printer } from "lucide-react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import AdminLayout from "@/pages/admin/AdminLayout";
 
 type Material = "MS" | "SS" | "BR" | "AL";
 type LabourMode = "perKg" | "perPiece";
@@ -113,16 +112,13 @@ const CalculatorPage = () => {
   const subtleBox = isDark ? "bg-[#0c0c0c] border border-yellow-400/15" : "bg-neutral-100 border border-neutral-200";
 
   return (
-    <div className={`min-h-screen flex flex-col ${wrap} transition-colors`}>
+    <AdminLayout>
       <Helmet>
-        <title>Fasteners Business Calculator — MS, SS, Brass, Aluminium | M.I. Engineering Works</title>
-        <meta name="description" content="Industrial calculator for MS, SS, Brass and Aluminium fasteners — weight, material, labour, profit and GST. Built by M.I. Engineering Works, Mumbai." />
+        <title>Fasteners Business Calculator · Admin</title>
       </Helmet>
 
-      <Header />
-
-      <main className="flex-1">
-        <section className="container py-8 md:py-12">
+      <div className={`-m-6 md:-m-10 min-h-[calc(100vh-0px)] ${wrap} transition-colors`}>
+        <section className="px-6 md:px-10 py-8">
           {/* Header strip */}
           <div className={`flex flex-wrap items-center justify-between gap-3 mb-7 pb-5 ${stripe}`}>
             <div className="flex items-center gap-3">
@@ -291,10 +287,8 @@ const CalculatorPage = () => {
             </div>
           </div>
         </section>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </AdminLayout>
   );
 };
 

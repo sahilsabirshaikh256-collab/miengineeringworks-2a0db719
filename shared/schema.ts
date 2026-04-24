@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, varchar, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -118,9 +118,27 @@ export const insertSiteContentSchema = z.object({
   value: z.string().default(""),
 });
 
-// Ledger / Khata
+// Ledger / Khata — Customers (created first)
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phone: text("phone").notNull().default(""),
+  address: text("address").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCustomerSchema = z.object({
+  name: z.string().min(1, "Customer name is required"),
+  phone: z.string().optional().default(""),
+  address: z.string().optional().default(""),
+});
+export type Customer = typeof customers.$inferSelect;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+
+// Ledger / Khata — Entries (always linked to a customer)
 export const ledgerEntries = pgTable("ledger_entries", {
   id: serial("id").primaryKey(),
+  customerId: integer("customer_id"),
   customerName: text("customer_name").notNull(),
   invoiceDate: text("invoice_date").notNull().default(""),
   invoiceNo: text("invoice_no").notNull().default(""),
@@ -133,6 +151,7 @@ export const ledgerEntries = pgTable("ledger_entries", {
 });
 
 export const insertLedgerSchema = z.object({
+  customerId: z.number().int().positive("Customer is required"),
   customerName: z.string().min(1, "Customer name is required"),
   invoiceDate: z.string().optional().default(""),
   invoiceNo: z.string().optional().default(""),

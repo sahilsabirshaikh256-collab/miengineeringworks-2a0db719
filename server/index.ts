@@ -197,12 +197,40 @@ app.delete("/api/admin/catalog-pdf", requireAuth, async (_req, res) => {
   res.json({ ok: true });
 });
 
-// Ledger / Khata
-app.get("/api/admin/ledger", requireAuth, async (_req, res) => res.json(await storage.listLedger()));
+// Customers (Ledger / Khata)
+app.get("/api/admin/customers", requireAuth, async (_req, res) => res.json(await storage.listCustomers()));
+app.get("/api/admin/customers/:id", requireAuth, async (req, res) => {
+  const c = await storage.getCustomer(Number(req.params.id));
+  if (!c) return res.status(404).json({ error: "Not found" });
+  res.json(c);
+});
+app.post("/api/admin/customers", requireAuth, async (req, res) => {
+  try {
+    const parsed = (await import("../shared/schema")).insertCustomerSchema.parse(req.body || {});
+    res.json(await storage.createCustomer(parsed));
+  } catch (e: any) { res.status(400).json({ error: e.message || "Invalid data" }); }
+});
+app.patch("/api/admin/customers/:id", requireAuth, async (req, res) => {
+  res.json(await storage.updateCustomer(Number(req.params.id), req.body || {}));
+});
+app.delete("/api/admin/customers/:id", requireAuth, async (req, res) => {
+  await storage.deleteCustomer(Number(req.params.id));
+  res.json({ ok: true });
+});
+
+// Ledger / Khata entries (always linked to a customer)
+app.get("/api/admin/ledger", requireAuth, async (req, res) => {
+  const customerId = req.query.customerId ? Number(req.query.customerId) : null;
+  if (customerId) return res.json(await storage.listLedgerByCustomer(customerId));
+  res.json(await storage.listLedger());
+});
 app.post("/api/admin/ledger", requireAuth, async (req, res) => {
   try {
     const parsed = (await import("../shared/schema")).insertLedgerSchema.parse(req.body || {});
-    res.json(await storage.createLedger(parsed));
+    // Auto-fill customerName from the customer record if available
+    const cust = await storage.getCustomer(parsed.customerId);
+    if (!cust) return res.status(400).json({ error: "Customer not found" });
+    res.json(await storage.createLedger({ ...parsed, customerName: cust.name }));
   } catch (e: any) { res.status(400).json({ error: e.message || "Invalid data" }); }
 });
 app.patch("/api/admin/ledger/:id", requireAuth, async (req, res) => {
