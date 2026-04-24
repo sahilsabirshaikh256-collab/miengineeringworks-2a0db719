@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useEditableTables } from "@/hooks/useEditableTables";
 
 const sectionHeader = {
   hidden: { opacity: 0, y: 20 },
@@ -11,6 +12,7 @@ const tableCard = {
 };
 
 const SpecificationsSection = () => {
+  const { chemical, mechMetric, mechImperial } = useEditableTables();
   return (
     <section id="specifications" className="py-20 md:py-28 bg-secondary/30">
       <div className="container">
@@ -47,26 +49,18 @@ const SpecificationsSection = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {[
-                    ["Carbon", "0.37–0.49 %", "0.02 %"],
-                    ["Manganese", "0.65–1.10 %", "0.04 %"],
-                    ["Phosphorus, max", "0.035 %", "0.005 % over"],
-                    ["Sulfur, max", "0.040 %", "0.005 % over"],
-                    ["Silicon", "0.15–0.35 %", "0.02 %"],
-                    ["Chromium", "0.75–1.20 %", "0.05 %"],
-                    ["Molybdenum", "0.15–0.25 %", "0.02 %"],
-                  ].map(([el, range, variation], i) => (
+                  {chemical.map((row, i) => (
                     <motion.tr
-                      key={el}
+                      key={`${row.element}-${i}`}
                       className="hover:bg-secondary/30 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.05 }}
                     >
-                      <td className="px-6 py-3 font-medium text-foreground">{el}</td>
-                      <td className="px-6 py-3 text-muted-foreground">{range}</td>
-                      <td className="px-6 py-3 text-muted-foreground">{variation}</td>
+                      <td className="px-6 py-3 font-medium text-foreground">{row.element}</td>
+                      <td className="px-6 py-3 text-muted-foreground">{row.range}</td>
+                      <td className="px-6 py-3 text-muted-foreground">{row.variation}</td>
                     </motion.tr>
                   ))}
                 </tbody>
@@ -93,26 +87,22 @@ const SpecificationsSection = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {[
-                    ["M64 and Under", "593", "860", "720", "16", "50", "321 HBW / 35 HRC"],
-                    ["Over M64 to M100", "593", "795", "655", "16", "50", "321 HBW / 35 HRC"],
-                    ["Over M100 to M180", "593", "690", "515", "18", "50", "321 HBW / 35 HRC"],
-                  ].map(([d, t, ts, ys, e, r, h], i) => (
+                  {mechMetric.map((row, i) => (
                     <motion.tr
-                      key={d}
+                      key={`${row.diameter}-${i}`}
                       className="hover:bg-secondary/30 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.08 }}
                     >
-                      <td className="px-4 py-3 font-medium text-foreground">{d}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{t}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{ts}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{ys}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{e}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{r}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{h}</td>
+                      <td className="px-4 py-3 font-medium text-foreground">{row.diameter}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.minTemp}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.tensile}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.yield}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.elong}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.redArea}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.hardness}</td>
                     </motion.tr>
                   ))}
                 </tbody>
@@ -139,26 +129,22 @@ const SpecificationsSection = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {[
-                    ["2.5\" and Under", "1100", "125", "105", "16", "50", "321 HBW / 35 HRC"],
-                    ["Over 2.5\" to 4\"", "1100", "115", "95", "16", "50", "321 HBW / 35 HRC"],
-                    ["Over 4\" to 7\"", "1100", "100", "75", "18", "50", "321 HBW / 35 HRC"],
-                  ].map(([d, t, ts, ys, e, r, h], i) => (
+                  {mechImperial.map((row, i) => (
                     <motion.tr
-                      key={d}
+                      key={`${row.diameter}-${i}`}
                       className="hover:bg-secondary/30 transition-colors"
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.08 }}
                     >
-                      <td className="px-4 py-3 font-medium text-foreground">{d}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{t}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{ts}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{ys}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{e}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{r}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{h}</td>
+                      <td className="px-4 py-3 font-medium text-foreground">{row.diameter}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.minTemp}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.tensile}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.yield}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.elong}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.redArea}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{row.hardness}</td>
                     </motion.tr>
                   ))}
                 </tbody>

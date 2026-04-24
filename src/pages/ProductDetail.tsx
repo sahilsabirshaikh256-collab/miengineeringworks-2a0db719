@@ -5,7 +5,6 @@ import { ArrowLeft, CheckCircle2, Phone, Mail } from "lucide-react";
 import { getProductBySlug, products } from "@/data/products";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import ReviewsSection from "@/components/ReviewsSection";
 import PageTransition from "@/components/PageTransition";
 
 const ProductDetail = () => {
@@ -336,7 +335,6 @@ const ProductDetail = () => {
       </section>
 
       {/* Reviews */}
-      <ReviewsSection />
 
       {/* Related Products */}
       <section className="py-16 bg-background">

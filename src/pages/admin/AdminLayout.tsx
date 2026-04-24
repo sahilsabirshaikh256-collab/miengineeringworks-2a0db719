@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, Factory, Award, Mail, LogOut, Home, Image, FileText, LayoutGrid } from "lucide-react";
+import { LayoutDashboard, Package, Factory, Award, Mail, LogOut, Home, Image, FileText, LayoutGrid, Table2, FileBarChart, BookOpen } from "lucide-react";
 import { clearToken } from "@/lib/api";
 
 const links = [
@@ -9,6 +9,9 @@ const links = [
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/industries", label: "Industries", icon: Factory },
   { to: "/admin/standards", label: "Standards", icon: Award },
+  { to: "/admin/grade-chart", label: "Grade Chart", icon: Table2 },
+  { to: "/admin/specifications", label: "Specifications", icon: FileBarChart },
+  { to: "/admin/catalog", label: "PDF Catalog", icon: BookOpen },
   { to: "/admin/media", label: "Photos & Videos", icon: Image },
   { to: "/admin/contacts", label: "Submissions", icon: Mail },
 ];

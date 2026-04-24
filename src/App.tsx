@@ -24,6 +24,9 @@ import AdminProducts from "./pages/admin/AdminProducts.tsx";
 import AdminIndustries from "./pages/admin/AdminIndustries.tsx";
 import AdminStandards from "./pages/admin/AdminStandards.tsx";
 import AdminContacts from "./pages/admin/AdminContacts.tsx";
+import AdminGradeChart from "./pages/admin/AdminGradeChart.tsx";
+import AdminSpecifications from "./pages/admin/AdminSpecifications.tsx";
+import AdminCatalog from "./pages/admin/AdminCatalog.tsx";
 import RequireAdmin from "./pages/admin/RequireAdmin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ScrollToTop from "./components/ScrollToTop";
@@ -54,6 +57,9 @@ const AnimatedRoutes = () => {
         <Route path="/admin/content" element={<RequireAdmin><AdminContent /></RequireAdmin>} />
         <Route path="/admin/sections" element={<RequireAdmin><AdminSections /></RequireAdmin>} />
         <Route path="/admin/contacts" element={<RequireAdmin><AdminContacts /></RequireAdmin>} />
+        <Route path="/admin/grade-chart" element={<RequireAdmin><AdminGradeChart /></RequireAdmin>} />
+        <Route path="/admin/specifications" element={<RequireAdmin><AdminSpecifications /></RequireAdmin>} />
+        <Route path="/admin/catalog" element={<RequireAdmin><AdminCatalog /></RequireAdmin>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>

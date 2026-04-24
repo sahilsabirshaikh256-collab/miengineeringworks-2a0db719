@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEditableTables } from "@/hooks/useEditableTables";
 
-const boltStudGrades = [
+const _LEGACY_BOLTS_UNUSED = [
   { grade: "ASTM A193 B7", material: "AISI 4140/4142 Alloy Steel", spec: "ASTM A193", tensile: "125 ksi (860 MPa)", yield: "105 ksi (720 MPa)", hardness: "35 HRC max", use: "Most common high-temp bolting" },
   { grade: "ASTM A193 B16", material: "AISI 4140/4142 Alloy Steel", spec: "ASTM A193", tensile: "125 ksi (860 MPa)", yield: "105 ksi (720 MPa)", hardness: "35 HRC max", use: "Higher-temp than B7 (to 1000°F)" },
   { grade: "ASTM A320 L7", material: "AISI 4140/4142 Alloy Steel", spec: "ASTM A320", tensile: "125 ksi (860 MPa)", yield: "105 ksi (720 MPa)", hardness: "35 HRC max", use: "Low-temperature service (−150°F)" },
@@ -63,6 +64,7 @@ const dimensionalStandards = [
 ];
 
 const GradeChartSection = () => {
+  const { bolts: boltStudGrades, nuts: nutGrades, dims: dimensionalStandards } = useEditableTables();
   return (
     <section id="grade-chart" className="py-20 md:py-28 bg-background">
       <div className="container">

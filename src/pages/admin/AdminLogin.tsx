@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const nav = useNavigate();
   const { toast } = useToast();
@@ -16,7 +17,7 @@ const AdminLogin = () => {
     try {
       const res = await api<{ token: string }>("/api/admin/login", {
         method: "POST",
-        body: JSON.stringify({ username: email.trim().toLowerCase(), password: "" }),
+        body: JSON.stringify({ username: email.trim().toLowerCase(), password }),
       });
       setToken(res.token);
       toast({ title: "Welcome back" });
@@ -37,7 +38,7 @@ const AdminLogin = () => {
           <p className="text-sm text-muted-foreground mt-1.5">M.I. Engineering Works · Content Panel</p>
         </div>
 
-        <label className="block mb-5">
+        <label className="block mb-4">
           <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground font-semibold">Admin Email</span>
           <input
             type="email"
@@ -46,14 +47,27 @@ const AdminLogin = () => {
             required
             autoFocus
             data-testid="input-username"
-            placeholder="Enter your admin email"
+            placeholder="miengineering@gmail.com"
+            className="mt-2 w-full bg-background border border-border rounded-lg px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+          />
+        </label>
+
+        <label className="block mb-5">
+          <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground font-semibold">Password</span>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            data-testid="input-password"
+            placeholder="Enter your password"
             className="mt-2 w-full bg-background border border-border rounded-lg px-4 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
           />
         </label>
 
         <button
           type="submit"
-          disabled={busy || !email}
+          disabled={busy || !email || !password}
           data-testid="button-login"
           className="w-full bg-gradient-gold text-charcoal font-semibold py-3 rounded-lg hover:opacity-90 transition disabled:opacity-50 shadow-gold"
         >

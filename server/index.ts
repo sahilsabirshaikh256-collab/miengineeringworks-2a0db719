@@ -31,15 +31,18 @@ const upload = multer({ storage: storageMulter, limits: { fileSize: 10 * 1024 * 
 
 // Auth
 app.post("/api/admin/login", async (req, res) => {
-  const { username } = req.body || {};
-  if (!username) return res.status(400).json({ error: "Email is required" });
-  const ADMIN_EMAIL = (process.env.ADMIN_USERNAME || "miengineering17@gmail.com").trim().toLowerCase();
+  const { username, password } = req.body || {};
+  if (!username || !password) return res.status(400).json({ error: "Email and password are required" });
   const submitted = String(username || "").trim().toLowerCase();
-  if (submitted !== ADMIN_EMAIL) {
+  const allowedEmails = (process.env.ADMIN_USERNAME || "miengineering@gmail.com,miengineering17@gmail.com")
+    .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+  if (!allowedEmails.includes(submitted)) {
     return res.status(401).json({ error: "Only the admin email is allowed to sign in." });
   }
   const u = await storage.getAdminByUsername(submitted);
   if (!u) return res.status(401).json({ error: "Admin not initialised" });
+  const ok = await verifyPassword(String(password), u.passwordHash);
+  if (!ok) return res.status(401).json({ error: "Invalid password" });
   res.json({ token: signToken({ id: u.id, username: u.username }) });
 });
 
@@ -138,12 +141,57 @@ app.delete("/api/admin/media/:id", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Branded company catalog PDF
-app.get("/api/catalog.pdf", (req, res) => {
+// Branded company catalog PDF — serves uploaded PDF if admin has set one,
+// otherwise generates a default branded PDF on the fly.
+app.get("/api/catalog.pdf", async (req, res) => {
+  try {
+    const map = await storage.getSiteContentMap();
+    const customUrl = (map["catalog.pdfUrl"] || "").trim();
+    if (customUrl && customUrl.startsWith("/uploads/")) {
+      const fp = path.resolve(UPLOAD_DIR, path.basename(customUrl));
+      if (fs.existsSync(fp)) {
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `attachment; filename="MI-Engineering-Works-Catalog.pdf"`);
+        res.setHeader("Cache-Control", "public, max-age=300");
+        return fs.createReadStream(fp).pipe(res);
+      }
+    }
+  } catch (e) { console.error("[catalog] custom pdf check failed:", e); }
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", 'attachment; filename="MI-Engineering-Works-Catalog.pdf"');
   res.setHeader("Cache-Control", "public, max-age=300");
   generateCatalogPdf(res);
+});
+
+// Admin: PDF catalog upload (.pdf only)
+const pdfUpload = multer({
+  storage: storageMulter,
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === "application/pdf" || file.originalname.toLowerCase().endsWith(".pdf")) cb(null, true);
+    else cb(new Error("Only PDF files are allowed"));
+  },
+});
+app.post("/api/admin/catalog-pdf", requireAuth, (req, res) => {
+  pdfUpload.single("file")(req, res, async (err: any) => {
+    if (err) return res.status(400).json({ error: err.message || "Upload failed" });
+    if (!req.file) return res.status(400).json({ error: "No file" });
+    const url = `/uploads/${req.file.filename}`;
+    await storage.upsertSiteContent({ key: "catalog.pdfUrl", value: url });
+    res.json({ url });
+  });
+});
+app.delete("/api/admin/catalog-pdf", requireAuth, async (_req, res) => {
+  try {
+    const map = await storage.getSiteContentMap();
+    const customUrl = (map["catalog.pdfUrl"] || "").trim();
+    if (customUrl && customUrl.startsWith("/uploads/")) {
+      const fp = path.resolve(UPLOAD_DIR, path.basename(customUrl));
+      if (fs.existsSync(fp)) fs.unlinkSync(fp);
+    }
+  } catch (e) { console.error("[catalog] delete failed:", e); }
+  await storage.upsertSiteContent({ key: "catalog.pdfUrl", value: "" });
+  res.json({ ok: true });
 });
 
 // Admin: contact submissions
@@ -179,16 +227,21 @@ app.delete("/api/admin/page-sections/:id", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Bootstrap default admin (email-based)
+// Bootstrap default admin (email + password)
 async function ensureDefaultAdmin() {
-  const username = process.env.ADMIN_USERNAME || "miengineering17@gmail.com";
-  const password = process.env.ADMIN_PASSWORD || "6392";
-  const existing = await storage.getAdminByUsername(username);
-  if (!existing) {
-    // Remove any legacy admin and create new one with desired credentials
-    await storage.deleteAllAdmins();
-    await storage.createAdmin(username, await hashPassword(password));
-    console.log(`[admin] Created admin user "${username}"`);
+  const password = process.env.ADMIN_PASSWORD || "6392061892";
+  const allowedEmails = (process.env.ADMIN_USERNAME || "miengineering@gmail.com,miengineering17@gmail.com")
+    .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const hash = await hashPassword(password);
+  for (const email of allowedEmails) {
+    const existing = await storage.getAdminByUsername(email);
+    if (!existing) {
+      await storage.createAdmin(email, hash);
+      console.log(`[admin] Created admin user "${email}"`);
+    } else {
+      // Reset password to env default each boot so credentials stay in sync
+      await storage.updateAdminPassword(existing.id, hash);
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { products } from "@/data/products";
 
 const SOCIALS = [
+  { href: "mailto:miengineering17@gmail.com", label: "Email", Icon: Mail, color: "hover:text-primary" },
   { href: "https://share.google/yGOyNRcx1ToTGVGK7", label: "Google Business Profile", Icon: Globe, color: "hover:text-[#EA4335]" },
   { href: "https://www.linkedin.com/in/mi-engineering-21a878402/", label: "LinkedIn", Icon: Linkedin, color: "hover:text-[#0A66C2]" },
   { href: "https://x.com/Engineerin86903", label: "X (Twitter)", Icon: Twitter, color: "hover:text-foreground" },

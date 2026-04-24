@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Play, X, ArrowRight, Image as ImageIcon } from "lucide-react";
+import { Play, X, ArrowRight, Image as ImageIcon, Download, Maximize2 } from "lucide-react";
 import { api, type Media } from "@/lib/api-extras";
 
 const GallerySection = () => {
@@ -56,19 +56,82 @@ const GallerySection = () => {
   );
 };
 
-export const Lightbox = ({ media, onClose }: { media: Media; onClose: () => void }) => (
-  <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={onClose}>
-    <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 text-white p-2"><X className="w-6 h-6" /></button>
-    <div className="max-w-5xl w-full" onClick={(e) => e.stopPropagation()}>
-      {media.type === "video" ? (
-        <video src={media.url} controls autoPlay className="w-full rounded-lg max-h-[80vh]" />
-      ) : (
-        <img src={media.url} alt={media.title} className="w-full rounded-lg max-h-[85vh] object-contain" />
-      )}
-      {media.title && <div className="text-white mt-3 text-center font-semibold">{media.title}</div>}
-      {media.caption && <div className="text-white/70 text-sm mt-1 text-center">{media.caption}</div>}
+export const Lightbox = ({ media, onClose }: { media: Media; onClose: () => void }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", onKey); document.body.style.overflow = ""; };
+  }, [onClose]);
+
+  const requestFs = () => {
+    const v = videoRef.current as any;
+    if (!v) return;
+    if (v.requestFullscreen) v.requestFullscreen();
+    else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200"
+      onClick={onClose}
+      data-testid="lightbox-overlay"
+    >
+      {/* Top bar */}
+      <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-3 sm:p-5 bg-gradient-to-b from-black/80 to-transparent" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 text-white/90">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary text-charcoal">
+            {media.type === "video" ? "Video" : "Photo"}
+          </span>
+          {media.title && <span className="font-heading text-sm sm:text-base font-semibold truncate max-w-[50vw]">{media.title}</span>}
+        </div>
+        <div className="flex items-center gap-1.5">
+          {media.type === "video" && (
+            <button onClick={requestFs} aria-label="Fullscreen" data-testid="button-fullscreen"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          )}
+          <a href={media.url} download target="_blank" rel="noopener noreferrer" aria-label="Download" data-testid="button-download-media"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+            <Download className="w-4 h-4" />
+          </a>
+          <button onClick={onClose} aria-label="Close" data-testid="button-close-lightbox"
+            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-6xl w-full" onClick={(e) => e.stopPropagation()}>
+        {media.type === "video" ? (
+          <div className="relative rounded-xl overflow-hidden shadow-2xl bg-black ring-1 ring-primary/30">
+            <video
+              ref={videoRef}
+              src={media.url}
+              poster={media.thumbnail || undefined}
+              controls
+              autoPlay
+              playsInline
+              controlsList="nodownload"
+              className="w-full h-auto max-h-[78vh] bg-black"
+              data-testid="video-player"
+            />
+          </div>
+        ) : (
+          <img src={media.url} alt={media.title} className="w-full rounded-xl max-h-[82vh] object-contain shadow-2xl" />
+        )}
+        {(media.title || media.caption) && (
+          <div className="mt-4 text-center px-4">
+            {media.title && <div className="text-white font-heading text-lg font-semibold">{media.title}</div>}
+            {media.caption && <div className="text-white/70 text-sm mt-1 max-w-3xl mx-auto">{media.caption}</div>}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default GallerySection;
