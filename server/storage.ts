@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { adminUsers, products, industries, standards, contactSubmissions, media } from "../shared/schema";
+import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections } from "../shared/schema";
 import { eq, asc, desc } from "drizzle-orm";
-import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia } from "../shared/schema";
+import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection } from "../shared/schema";
 
 export const storage = {
   // Admin
@@ -61,4 +61,29 @@ export const storage = {
     db.insert(contactSubmissions).values(data).returning().then((r) => r[0]),
   listContacts: () => db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt)),
   deleteContact: (id: number) => db.delete(contactSubmissions).where(eq(contactSubmissions.id, id)),
+
+  // Site content (key/value)
+  listSiteContent: () => db.select().from(siteContent).orderBy(asc(siteContent.key)),
+  getSiteContentMap: async () => {
+    const rows = await db.select().from(siteContent);
+    return rows.reduce<Record<string, string>>((m, r) => { m[r.key] = r.value; return m; }, {});
+  },
+  upsertSiteContent: async (data: InsertSiteContent) => {
+    const existing = await db.select().from(siteContent).where(eq(siteContent.key, data.key)).then((r) => r[0]);
+    if (existing) return db.update(siteContent).set({ value: data.value }).where(eq(siteContent.id, existing.id)).returning().then((r) => r[0]);
+    return db.insert(siteContent).values(data).returning().then((r) => r[0]);
+  },
+  bulkUpsertSiteContent: async (entries: InsertSiteContent[]) => {
+    for (const e of entries) await storage.upsertSiteContent(e);
+    return storage.getSiteContentMap();
+  },
+
+  // Page sections (custom homepage blocks)
+  listPageSections: (page = "home") =>
+    db.select().from(pageSections).where(eq(pageSections.page, page)).orderBy(asc(pageSections.sortOrder)),
+  createPageSection: (data: InsertPageSection) =>
+    db.insert(pageSections).values(data).returning().then((r) => r[0]),
+  updatePageSection: (id: number, data: Partial<InsertPageSection>) =>
+    db.update(pageSections).set(data).where(eq(pageSections.id, id)).returning().then((r) => r[0]),
+  deletePageSection: (id: number) => db.delete(pageSections).where(eq(pageSections.id, id)),
 };

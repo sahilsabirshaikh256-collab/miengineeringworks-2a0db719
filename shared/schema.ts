@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, varchar, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -74,6 +74,28 @@ export const contactSubmissions = pgTable("contact_submissions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Editable site content — key/value JSON store for hero/about/stats/contact, etc.
+export const siteContent = pgTable("site_content", {
+  id: serial("id").primaryKey(),
+  key: varchar("key", { length: 128 }).notNull().unique(),
+  value: text("value").notNull().default(""),
+});
+
+// Custom sections admin can add to the homepage
+export const pageSections = pgTable("page_sections", {
+  id: serial("id").primaryKey(),
+  page: varchar("page", { length: 64 }).notNull().default("home"),
+  position: varchar("position", { length: 64 }).notNull().default("after-stats"),
+  title: text("title").notNull().default(""),
+  subtitle: text("subtitle").notNull().default(""),
+  body: text("body").notNull().default(""),
+  image: text("image").notNull().default(""),
+  linkText: text("link_text").notNull().default(""),
+  linkUrl: text("link_url").notNull().default(""),
+  enabled: boolean("enabled").notNull().default(true),
+  sortOrder: serial("sort_order"),
+});
+
 export const insertMediaSchema = createInsertSchema(media).omit({ id: true, sortOrder: true });
 export type Media = typeof media.$inferSelect;
 export type InsertMedia = z.infer<typeof insertMediaSchema>;
@@ -81,19 +103,42 @@ export type InsertMedia = z.infer<typeof insertMediaSchema>;
 export const insertProductSchema = createInsertSchema(products).omit({ id: true, sortOrder: true });
 export const insertIndustrySchema = createInsertSchema(industries).omit({ id: true, sortOrder: true });
 export const insertStandardSchema = createInsertSchema(standards).omit({ id: true, sortOrder: true });
-export const insertContactSchema = createInsertSchema(contactSubmissions).omit({ id: true, createdAt: true }).extend({
+
+// Contact: hand-rolled to avoid drizzle-zod ↔ zod v3/v4 cross-version issues
+export const insertContactSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   email: z.string().email("Valid email required"),
   phone: z.string().min(7, "Phone is required"),
-  message: z.string().min(5, "Message is required"),
   companyName: z.string().optional().default(""),
+  message: z.string().min(5, "Message is required"),
+});
+
+export const insertSiteContentSchema = z.object({
+  key: z.string().min(1),
+  value: z.string().default(""),
+});
+
+export const insertPageSectionSchema = z.object({
+  page: z.string().default("home"),
+  position: z.string().default("after-stats"),
+  title: z.string().default(""),
+  subtitle: z.string().default(""),
+  body: z.string().default(""),
+  image: z.string().default(""),
+  linkText: z.string().default(""),
+  linkUrl: z.string().default(""),
+  enabled: z.boolean().default(true),
 });
 
 export type Product = typeof products.$inferSelect;
 export type Industry = typeof industries.$inferSelect;
 export type Standard = typeof standards.$inferSelect;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
+export type SiteContent = typeof siteContent.$inferSelect;
+export type PageSection = typeof pageSections.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertIndustry = z.infer<typeof insertIndustrySchema>;
 export type InsertStandard = z.infer<typeof insertStandardSchema>;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+export type InsertSiteContent = z.infer<typeof insertSiteContentSchema>;
+export type InsertPageSection = z.infer<typeof insertPageSectionSchema>;

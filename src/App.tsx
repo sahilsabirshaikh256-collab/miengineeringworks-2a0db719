@@ -16,6 +16,8 @@ import StandardDetail from "./pages/StandardDetail.tsx";
 import GalleryPage from "./pages/GalleryPage.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminMedia from "./pages/admin/AdminMedia.tsx";
+import AdminContent from "./pages/admin/AdminContent.tsx";
+import AdminSections from "./pages/admin/AdminSections.tsx";
 import WhatsAppButton from "./components/WhatsAppButton.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminProducts from "./pages/admin/AdminProducts.tsx";
@@ -49,6 +51,8 @@ const AnimatedRoutes = () => {
         <Route path="/admin/industries" element={<RequireAdmin><AdminIndustries /></RequireAdmin>} />
         <Route path="/admin/standards" element={<RequireAdmin><AdminStandards /></RequireAdmin>} />
         <Route path="/admin/media" element={<RequireAdmin><AdminMedia /></RequireAdmin>} />
+        <Route path="/admin/content" element={<RequireAdmin><AdminContent /></RequireAdmin>} />
+        <Route path="/admin/sections" element={<RequireAdmin><AdminSections /></RequireAdmin>} />
         <Route path="/admin/contacts" element={<RequireAdmin><AdminContacts /></RequireAdmin>} />
 
         <Route path="*" element={<NotFound />} />

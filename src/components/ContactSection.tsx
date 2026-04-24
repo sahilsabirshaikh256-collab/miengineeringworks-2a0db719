@@ -3,8 +3,10 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const ContactSection = () => {
+  const { get } = useSiteContent();
   const { toast } = useToast();
   const [form, setForm] = useState({ fullName: "", email: "", phone: "", companyName: "", message: "" });
 
@@ -33,9 +35,9 @@ const ContactSection = () => {
     <section id="contact" className="py-20 md:py-28 bg-secondary/30">
       <div className="container">
         <div className="text-center mb-16">
-          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Get In Touch</span>
+          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary" data-testid="text-contact-eyebrow">{get("contact.eyebrow")}</span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold mt-3 text-foreground">
-            Contact <span className="text-gradient-gold">Us</span>
+            <span data-testid="text-contact-title">{get("contact.title")}</span>{get("contact.titleAccent") && " "}{get("contact.titleAccent") && <span className="text-gradient-gold" data-testid="text-contact-title-accent">{get("contact.titleAccent")}</span>}
           </h2>
           <div className="gold-divider w-24 mx-auto mt-6" />
         </div>
@@ -43,14 +45,14 @@ const ContactSection = () => {
         <div className="grid lg:grid-cols-5 gap-10 max-w-6xl mx-auto">
           {/* Info cards */}
           <div className="lg:col-span-2 space-y-5">
-            <a href="mailto:mienginering17@gmail.com" data-testid="link-email" className="block bg-card rounded-lg border border-border p-6 shadow-elegant hover:border-primary/40 hover:shadow-gold transition">
+            <a href={`mailto:${get("contact.email")}`} data-testid="link-email" className="block bg-card rounded-lg border border-border p-6 shadow-elegant hover:border-primary/40 hover:shadow-gold transition">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 rounded-full bg-gradient-gold flex items-center justify-center flex-shrink-0">
                   <Mail className="w-5 h-5 text-charcoal" />
                 </div>
                 <div>
                   <h3 className="font-heading text-base font-semibold text-foreground">Email</h3>
-                  <p className="text-muted-foreground text-sm mt-1" data-testid="text-email">mienginering17@gmail.com</p>
+                  <p className="text-muted-foreground text-sm mt-1 break-all" data-testid="text-email">{get("contact.email")}</p>
                 </div>
               </div>
             </a>
@@ -62,8 +64,8 @@ const ContactSection = () => {
                 <div>
                   <h3 className="font-heading text-base font-semibold text-foreground">Phone</h3>
                   <p className="text-muted-foreground text-sm mt-1">
-                    <a href="tel:9819972301" className="hover:text-primary block" data-testid="link-phone-1">+91 98199 72301</a>
-                    <a href="tel:9137658733" className="hover:text-primary block" data-testid="link-phone-2">+91 91376 58733</a>
+                    {get("contact.phone1") && <a href={`tel:${get("contact.phone1").replace(/\s|\+/g, "")}`} className="hover:text-primary block" data-testid="link-phone-1">{get("contact.phone1")}</a>}
+                    {get("contact.phone2") && <a href={`tel:${get("contact.phone2").replace(/\s|\+/g, "")}`} className="hover:text-primary block" data-testid="link-phone-2">{get("contact.phone2")}</a>}
                   </p>
                 </div>
               </div>
@@ -75,10 +77,8 @@ const ContactSection = () => {
                 </div>
                 <div>
                   <h3 className="font-heading text-base font-semibold text-foreground">Address</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mt-1" data-testid="text-address">
-                    301, 01, Mehar Iron Bazar,<br />
-                    Iron Market, Khedwadi,<br />
-                    Girgaon, Mumbai – 400004
+                  <p className="text-muted-foreground text-sm leading-relaxed mt-1 whitespace-pre-line" data-testid="text-address">
+                    {get("contact.address")}
                   </p>
                 </div>
               </div>
@@ -88,7 +88,7 @@ const ContactSection = () => {
           {/* Form */}
           <form onSubmit={onSubmit} className="lg:col-span-3 bg-card rounded-lg border border-border p-6 md:p-8 shadow-elegant" data-testid="form-contact">
             <h3 className="font-heading text-2xl font-bold text-foreground mb-2">Send Us a Message</h3>
-            <p className="text-sm text-muted-foreground mb-6">Tell us about your fastener requirements — we typically respond within 24 hours.</p>
+            <p className="text-sm text-muted-foreground mb-6" data-testid="text-form-intro">{get("contact.formIntro")}</p>
 
             <div className="grid md:grid-cols-2 gap-4">
               <Field label="Full Name *">

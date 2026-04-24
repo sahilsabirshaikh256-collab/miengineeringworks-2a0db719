@@ -1,13 +1,14 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import { Award, Users, Package, Globe } from "lucide-react";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
-const stats = [
-  { icon: Award, value: 25, suffix: "+", label: "Years Experience", description: "Decades of trusted manufacturing" },
-  { icon: Users, value: 500, suffix: "+", label: "Happy Clients", description: "Across India & worldwide" },
-  { icon: Package, value: 10000, suffix: "+", label: "Orders Delivered", description: "On-time, every time" },
-  { icon: Globe, value: 12, suffix: "+", label: "Industries Served", description: "From Oil & Gas to Aerospace" },
-];
+const ICONS = [Award, Users, Package, Globe];
+const parseNum = (s: string) => {
+  const m = String(s || "").replace(/[, ]/g, "").match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+};
+const suffixOf = (s: string) => (String(s || "").includes("+") ? "+" : (s || "").replace(/[\d, ]/g, ""));
 
 const AnimatedNumber = ({ value, suffix, inView }: { value: number; suffix: string; inView: boolean }) => {
   const [count, setCount] = useState(0);
@@ -37,8 +38,16 @@ const AnimatedNumber = ({ value, suffix, inView }: { value: number; suffix: stri
 };
 
 const StatsCounter = () => {
+  const { get } = useSiteContent();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-100px" });
+
+  const stats = [
+    { icon: ICONS[0], value: parseNum(get("stats.years")), suffix: suffixOf(get("stats.years")) || "+", label: get("stats.yearsLabel"), description: "Decades of trusted manufacturing" },
+    { icon: ICONS[1], value: parseNum(get("stats.clients")), suffix: suffixOf(get("stats.clients")) || "+", label: get("stats.clientsLabel"), description: "Across India & worldwide" },
+    { icon: ICONS[2], value: parseNum(get("stats.orders")), suffix: suffixOf(get("stats.orders")) || "+", label: get("stats.ordersLabel"), description: "On-time, every time" },
+    { icon: ICONS[3], value: parseNum(get("stats.industries")), suffix: suffixOf(get("stats.industries")) || "+", label: get("stats.industriesLabel"), description: "From Oil & Gas to Aerospace" },
+  ];
 
   return (
     <section className="py-20 md:py-28 relative overflow-hidden">
@@ -55,9 +64,9 @@ const StatsCounter = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">Our Track Record</span>
+          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary" data-testid="text-stats-eyebrow">{get("stats.eyebrow")}</span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold mt-3 text-primary-foreground">
-            Numbers That <span className="text-gradient-gold">Speak</span>
+            <span data-testid="text-stats-title">{get("stats.title")}</span>{get("stats.titleAccent") && " "}{get("stats.titleAccent") && <span className="text-gradient-gold" data-testid="text-stats-title-accent">{get("stats.titleAccent")}</span>}
           </h2>
           <motion.div
             className="gold-divider w-24 mx-auto mt-6"

@@ -6,7 +6,8 @@ import fs from "fs";
 import multer from "multer";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, signToken, requireAuth } from "./auth";
-import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema, insertMediaSchema } from "../shared/schema";
+import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema, insertMediaSchema, insertSiteContentSchema, insertPageSectionSchema } from "../shared/schema";
+import { z } from "zod";
 import { generateCatalogPdf } from "./catalog-pdf";
 import { sendContactEmail } from "./mailer";
 
@@ -149,6 +150,32 @@ app.get("/api/catalog.pdf", (req, res) => {
 app.get("/api/admin/contacts", requireAuth, async (_req, res) => res.json(await storage.listContacts()));
 app.delete("/api/admin/contacts/:id", requireAuth, async (req, res) => {
   await storage.deleteContact(Number(req.params.id));
+  res.json({ ok: true });
+});
+
+// Site content (public read, admin write)
+app.get("/api/site-content", async (_req, res) => res.json(await storage.getSiteContentMap()));
+app.post("/api/admin/site-content", requireAuth, async (req, res) => {
+  const arr = z.array(insertSiteContentSchema).safeParse(req.body);
+  if (!arr.success) return res.status(400).json({ error: arr.error.flatten() });
+  res.json(await storage.bulkUpsertSiteContent(arr.data));
+});
+
+// Page sections (public read by page, admin CRUD)
+app.get("/api/page-sections", async (req, res) => {
+  const page = String(req.query.page || "home");
+  res.json(await storage.listPageSections(page));
+});
+app.post("/api/admin/page-sections", requireAuth, async (req, res) => {
+  const parsed = insertPageSectionSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  res.json(await storage.createPageSection(parsed.data));
+});
+app.patch("/api/admin/page-sections/:id", requireAuth, async (req, res) => {
+  res.json(await storage.updatePageSection(Number(req.params.id), req.body));
+});
+app.delete("/api/admin/page-sections/:id", requireAuth, async (req, res) => {
+  await storage.deletePageSection(Number(req.params.id));
   res.json({ ok: true });
 });
 

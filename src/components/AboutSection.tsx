@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Shield, Award, Truck, Factory } from "lucide-react";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const highlights = [
   { icon: Factory, title: "Own Manufacturing Unit", desc: "In-house CNC machining, threading & heat treatment facility in Mumbai" },
@@ -9,6 +10,7 @@ const highlights = [
 ];
 
 const AboutSection = () => {
+  const { get } = useSiteContent();
   return (
     <section id="about" className="py-20 md:py-28 bg-background relative overflow-hidden">
       {/* Subtle glass orbs */}
@@ -24,9 +26,10 @@ const AboutSection = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary">About Us</span>
+            <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary" data-testid="text-about-eyebrow">{get("about.eyebrow")}</span>
             <h2 className="font-heading text-3xl md:text-5xl font-bold mt-3 text-foreground">
-              M.I. Engineering <span className="text-gradient-gold">Works</span>
+              <span data-testid="text-about-title">{get("about.title")}</span>{get("about.titleAccent") && " "}
+              {get("about.titleAccent") && <span className="text-gradient-gold" data-testid="text-about-title-accent">{get("about.titleAccent")}</span>}
             </h2>
             <motion.div
               className="gold-divider w-20 mt-6 mb-6"
@@ -36,11 +39,11 @@ const AboutSection = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               style={{ transformOrigin: "left" }}
             />
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              <strong className="text-foreground">M.I. Engineering Works</strong> is a leading manufacturer and supplier of <strong className="text-foreground">ASTM A193 Grade B7</strong> high-tensile fasteners based in Mumbai, India. With over <strong className="text-foreground">25 years of expertise</strong>, we supply stud bolts, hex bolts, threaded rods, anchor bolts, and specialty fasteners to oil refineries, petrochemical plants, power stations, and EPC contractors across India and the Middle East.
+            <p className="text-muted-foreground leading-relaxed mb-4 whitespace-pre-line" data-testid="text-about-body1">
+              {get("about.body1")}
             </p>
-            <p className="text-muted-foreground leading-relaxed">
-              Our state-of-the-art manufacturing facility is equipped with CNC turning, precision threading, and heat treatment capabilities. Every fastener undergoes rigorous quality inspection with full material test certificates (MTCs) per EN 10204 Type 3.1.
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-line" data-testid="text-about-body2">
+              {get("about.body2")}
             </p>
           </motion.div>
 

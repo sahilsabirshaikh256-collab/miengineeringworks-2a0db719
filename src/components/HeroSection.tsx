@@ -1,8 +1,10 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import heroImg from "@/assets/hero-fasteners.jpg";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const HeroSection = () => {
+  const { get } = useSiteContent();
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
@@ -49,29 +51,38 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
             style={{ transformOrigin: "left" }}
           />
+          {get("hero.eyebrow") && (
+            <div className="mb-3 text-xs font-semibold tracking-[0.4em] uppercase text-gold-light/80" data-testid="text-hero-eyebrow">
+              {get("hero.eyebrow")}
+            </div>
+          )}
           <motion.h1
             className="font-heading text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-tight"
             initial={{ opacity: 0, y: 40, rotateX: 15 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            ASTM A193 Grade B7{" "}
-            <motion.span
-              className="text-gradient-gold inline-block"
-              initial={{ opacity: 0, y: 30, rotateX: 15 }}
-              animate={{ opacity: 1, y: 0, rotateX: 0 }}
-              transition={{ duration: 0.8, delay: 0.7 }}
-            >
-              Fasteners
-            </motion.span>
+            <span data-testid="text-hero-title">{get("hero.title")}</span>{get("hero.titleAccent") && " "}
+            {get("hero.titleAccent") && (
+              <motion.span
+                className="text-gradient-gold inline-block"
+                initial={{ opacity: 0, y: 30, rotateX: 15 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+                data-testid="text-hero-title-accent"
+              >
+                {get("hero.titleAccent")}
+              </motion.span>
+            )}
           </motion.h1>
           <motion.p
             className="mt-6 text-lg md:text-xl text-gold-light/80 max-w-2xl leading-relaxed"
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9 }}
+            data-testid="text-hero-subtitle"
           >
-            M.I. Engineering Works — trusted ASTM A193 Grade B7 manufacturer &amp; supplier of stud bolts, hex bolts, threaded rods, anchor bolts &amp; high-tensile alloy steel fasteners for petrochemical, oil &amp; gas, and power plant applications. Based in Mumbai, India.
+            {get("hero.subtitle")}
           </motion.p>
           <motion.div
             className="mt-10 flex flex-wrap gap-4"
@@ -79,22 +90,28 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.1 }}
           >
-            <motion.a
-              href="#products"
-              className="inline-flex items-center px-8 py-3.5 bg-gradient-gold text-charcoal font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-gold"
-              whileHover={{ scale: 1.05, boxShadow: "0 8px 30px -4px hsl(43 72% 48% / 0.5)" }}
-              whileTap={{ scale: 0.97 }}
-            >
-              View Products
-            </motion.a>
-            <motion.a
-              href="#contact"
-              className="inline-flex items-center px-8 py-3.5 border-2 border-gold/50 text-gold-light font-semibold rounded-sm hover:bg-gold/10 transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Get a Quote
-            </motion.a>
+            {get("hero.ctaPrimaryText") && (
+              <motion.a
+                href={get("hero.ctaPrimaryUrl") || "#products"}
+                className="inline-flex items-center px-8 py-3.5 bg-gradient-gold text-charcoal font-semibold rounded-sm hover:opacity-90 transition-opacity shadow-gold"
+                whileHover={{ scale: 1.05, boxShadow: "0 8px 30px -4px hsl(43 72% 48% / 0.5)" }}
+                whileTap={{ scale: 0.97 }}
+                data-testid="link-hero-primary"
+              >
+                {get("hero.ctaPrimaryText")}
+              </motion.a>
+            )}
+            {get("hero.ctaSecondaryText") && (
+              <motion.a
+                href={get("hero.ctaSecondaryUrl") || "#contact"}
+                className="inline-flex items-center px-8 py-3.5 border-2 border-gold/50 text-gold-light font-semibold rounded-sm hover:bg-gold/10 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.97 }}
+                data-testid="link-hero-secondary"
+              >
+                {get("hero.ctaSecondaryText")}
+              </motion.a>
+            )}
           </motion.div>
         </motion.div>
       </motion.div>

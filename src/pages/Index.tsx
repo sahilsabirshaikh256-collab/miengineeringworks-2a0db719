@@ -12,6 +12,7 @@ import GradeChartSection from "@/components/GradeChartSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
+import CustomSections from "@/components/CustomSections";
 import { Helmet } from "react-helmet-async";
 
 const Index = () => {
@@ -23,16 +24,24 @@ const Index = () => {
       </Helmet>
       <div className="min-h-screen">
         <Header />
+        <CustomSections position="top" />
         <HeroSection />
+        <CustomSections position="after-hero" />
         <ProductSlider />
         <AboutSection />
+        <CustomSections position="after-about" />
         <ProductsSection />
         <StatsCounter />
+        <CustomSections position="after-stats" />
         <ApplicationsSection />
+        <CustomSections position="after-applications" />
         <StandardsSection />
+        <CustomSections position="after-standards" />
         <GallerySection />
+        <CustomSections position="after-gallery" />
         <SpecificationsSection />
         <GradeChartSection />
+        <CustomSections position="before-contact" />
         <ContactSection />
         <Footer />
       </div>
