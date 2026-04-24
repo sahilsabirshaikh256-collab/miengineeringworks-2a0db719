@@ -1,20 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "./AdminLayout";
 import { api, type Product, type Industry, type Standard, type ContactSubmission } from "@/lib/api";
-import { Package, Factory, Award, Mail } from "lucide-react";
+import type { Media } from "@/lib/api-extras";
+import { Package, Factory, Award, Mail, Image as ImageIcon, Video } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { data: products } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
   const { data: industries } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
   const { data: standards } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards") });
+  const { data: media } = useQuery<Media[]>({ queryKey: ["/api/media"], queryFn: () => api("/api/media") });
   const { data: contacts } = useQuery<ContactSubmission[]>({ queryKey: ["/api/admin/contacts"], queryFn: () => api("/api/admin/contacts") });
 
+  const photosCount = media?.filter((m) => m.type === "photo").length;
+  const videosCount = media?.filter((m) => m.type === "video").length;
+
   const cards = [
-    { to: "/admin/products", label: "Products", icon: Package, count: products?.length ?? "…" },
-    { to: "/admin/industries", label: "Industries", icon: Factory, count: industries?.length ?? "…" },
-    { to: "/admin/standards", label: "Standards", icon: Award, count: standards?.length ?? "…" },
-    { to: "/admin/contacts", label: "Submissions", icon: Mail, count: contacts?.length ?? "…" },
+    { to: "/admin/products", label: "Products", icon: Package, count: products?.length ?? "…", testId: "stat-products" },
+    { to: "/admin/industries", label: "Industries", icon: Factory, count: industries?.length ?? "…", testId: "stat-industries" },
+    { to: "/admin/standards", label: "Standards", icon: Award, count: standards?.length ?? "…", testId: "stat-standards" },
+    { to: "/admin/media", label: "Photos", icon: ImageIcon, count: photosCount ?? "…", testId: "stat-photos" },
+    { to: "/admin/media", label: "Videos", icon: Video, count: videosCount ?? "…", testId: "stat-videos" },
+    { to: "/admin/contacts", label: "Submissions", icon: Mail, count: contacts?.length ?? "…", testId: "stat-submissions" },
   ];
 
   return (
