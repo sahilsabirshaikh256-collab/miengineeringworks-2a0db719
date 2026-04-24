@@ -14,6 +14,7 @@ import GradeChartPage from "./pages/GradeChartPage.tsx";
 import StandardsPage from "./pages/StandardsPage.tsx";
 import StandardDetail from "./pages/StandardDetail.tsx";
 import GalleryPage from "./pages/GalleryPage.tsx";
+import CalculatorPage from "./pages/CalculatorPage.tsx";
 import AdminLogin from "./pages/admin/AdminLogin.tsx";
 import AdminMedia from "./pages/admin/AdminMedia.tsx";
 import AdminContent from "./pages/admin/AdminContent.tsx";
@@ -27,9 +28,14 @@ import AdminContacts from "./pages/admin/AdminContacts.tsx";
 import AdminGradeChart from "./pages/admin/AdminGradeChart.tsx";
 import AdminSpecifications from "./pages/admin/AdminSpecifications.tsx";
 import AdminCatalog from "./pages/admin/AdminCatalog.tsx";
+import AdminBranding from "./pages/admin/AdminBranding.tsx";
+import AdminAnimations from "./pages/admin/AdminAnimations.tsx";
+import AdminLedger from "./pages/admin/AdminLedger.tsx";
 import RequireAdmin from "./pages/admin/RequireAdmin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import ScrollToTop from "./components/ScrollToTop";
+import BrandingHead from "./components/BrandingHead";
+import { useApplyBackgroundAnimation } from "@/hooks/useActiveAnimations";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +53,7 @@ const AnimatedRoutes = () => {
         <Route path="/gallery" element={<GalleryPage />} />
         <Route path="/specifications" element={<SpecificationsPage />} />
         <Route path="/grade-chart" element={<GradeChartPage />} />
+        <Route path="/calculator" element={<CalculatorPage />} />
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
@@ -60,11 +67,19 @@ const AnimatedRoutes = () => {
         <Route path="/admin/grade-chart" element={<RequireAdmin><AdminGradeChart /></RequireAdmin>} />
         <Route path="/admin/specifications" element={<RequireAdmin><AdminSpecifications /></RequireAdmin>} />
         <Route path="/admin/catalog" element={<RequireAdmin><AdminCatalog /></RequireAdmin>} />
+        <Route path="/admin/branding" element={<RequireAdmin><AdminBranding /></RequireAdmin>} />
+        <Route path="/admin/animations" element={<RequireAdmin><AdminAnimations /></RequireAdmin>} />
+        <Route path="/admin/ledger" element={<RequireAdmin><AdminLedger /></RequireAdmin>} />
 
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
   );
+};
+
+const SiteEffects = () => {
+  useApplyBackgroundAnimation();
+  return null;
 };
 
 const App = () => (
@@ -76,6 +91,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <BrandingHead />
+            <SiteEffects />
             <ScrollToTop />
             <AnimatedRoutes />
             <WhatsAppButton />

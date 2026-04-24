@@ -1,19 +1,59 @@
-import { useState } from "react";
-import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2, MessageCircle, Linkedin, Facebook, Twitter, Globe } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2, MessageCircle, Linkedin, Facebook, Twitter, Globe, Instagram, Youtube, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
+import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/hooks/useSiteContent";
 
-const SOCIALS = [
-  { href: "mailto:miengineering17@gmail.com", label: "Email", Icon: Mail, color: "hover:text-primary" },
-  { href: "https://share.google/yGOyNRcx1ToTGVGK7", label: "Google Business Profile", Icon: Globe, color: "hover:text-[#EA4335]" },
-  { href: "https://www.linkedin.com/in/mi-engineering-21a878402/", label: "LinkedIn", Icon: Linkedin, color: "hover:text-[#0A66C2]" },
-  { href: "https://x.com/Engineerin86903", label: "X (Twitter)", Icon: Twitter, color: "hover:text-foreground" },
-  { href: "https://www.facebook.com/profile.php?id=61587684155116", label: "Facebook", Icon: Facebook, color: "hover:text-[#1877F2]" },
-  { href: "https://wa.me/919819972301", label: "WhatsApp", Icon: MessageCircle, color: "hover:text-[#25D366]" },
-];
+type SocialDef = { label: string; url: string; icon: string };
+
+const ICONS: Record<string, any> = {
+  mail: Mail,
+  email: Mail,
+  globe: Globe,
+  google: Globe,
+  linkedin: Linkedin,
+  twitter: Twitter,
+  x: Twitter,
+  facebook: Facebook,
+  whatsapp: MessageCircle,
+  instagram: Instagram,
+  youtube: Youtube,
+  github: Github,
+};
+
+const ICON_COLORS: Record<string, string> = {
+  mail: "hover:text-primary",
+  email: "hover:text-primary",
+  globe: "hover:text-[#EA4335]",
+  google: "hover:text-[#EA4335]",
+  linkedin: "hover:text-[#0A66C2]",
+  twitter: "hover:text-foreground",
+  x: "hover:text-foreground",
+  facebook: "hover:text-[#1877F2]",
+  whatsapp: "hover:text-[#25D366]",
+  instagram: "hover:text-[#E4405F]",
+  youtube: "hover:text-[#FF0000]",
+  github: "hover:text-foreground",
+};
 
 const Footer = () => {
+  const { content } = useSiteContent();
+  const brandName = (content["brand.name"] || "M.I. Engineering Works").trim();
+  const gst = (content["company.gst"] || "27CBFPM8207D1ZR").trim();
+  const email = (content["contact.email"] || "miengineering17@gmail.com").trim();
+  const phone1 = (content["contact.phone1"] || "+91 98199 72301").trim();
+  const phone2 = (content["contact.phone2"] || "+91 91376 58733").trim();
+  const address = (content["contact.address"] || "301, 01, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon, Mumbai – 400004").trim();
+
+  const socials: SocialDef[] = useMemo(() => {
+    try {
+      const raw = content["socials.json"] || SITE_CONTENT_DEFAULTS["socials.json"];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr.filter((s: any) => s && s.url && s.label) : [];
+    } catch { return []; }
+  }, [content]);
+
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -93,11 +133,11 @@ const Footer = () => {
 
             {/* Quick contact buttons */}
             <div className="mt-6 pt-6 border-t border-primary/10 grid sm:grid-cols-2 gap-3">
-              <a href="https://wa.me/919819972301?text=Hello%20M.I.%20Engineering%20Works" target="_blank" rel="noopener noreferrer" data-testid="footer-whatsapp"
+              <a href={`https://wa.me/${phone1.replace(/\D/g, "")}?text=Hello%20${encodeURIComponent(brandName)}`} target="_blank" rel="noopener noreferrer" data-testid="footer-whatsapp"
                 className="inline-flex items-center justify-center gap-2 bg-[#25D366] text-white font-semibold py-2.5 rounded-lg hover:opacity-90 text-sm">
                 <MessageCircle className="w-4 h-4" /> WhatsApp Us
               </a>
-              <a href="tel:+919819972301" data-testid="footer-call"
+              <a href={`tel:${phone1.replace(/\s/g, "")}`} data-testid="footer-call"
                 className="inline-flex items-center justify-center gap-2 border border-primary/40 text-gold-light font-semibold py-2.5 rounded-lg hover:bg-primary/10 text-sm">
                 <Phone className="w-4 h-4" /> Call Now
               </a>
@@ -109,7 +149,7 @@ const Footer = () => {
             initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}
           >
             <iframe
-              title="M.I. Engineering Works Location"
+              title={`${brandName} Location`}
               src="https://www.google.com/maps?q=Khedwadi,Girgaon,Mumbai,400004&output=embed"
               width="100%" height="100%" style={{ border: 0, minHeight: "320px" }}
               allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
@@ -120,18 +160,27 @@ const Footer = () => {
         {/* Footer columns */}
         <div className="grid md:grid-cols-12 gap-10 border-t border-primary/10 pt-12">
           <div className="md:col-span-4">
-            <h3 className="font-heading text-2xl font-bold text-gradient-gold mb-3">M.I. Engineering Works</h3>
-            <p className="text-sm leading-relaxed text-gold-light/60 mb-5">
+            <h3 className="font-heading text-2xl font-bold text-gradient-gold mb-3" data-testid="text-footer-brand">{brandName}</h3>
+            <p className="text-sm leading-relaxed text-gold-light/60 mb-3">
               Mumbai-based manufacturer & supplier of premium industrial fasteners — engineered, tested, and trusted across oil & gas, power, infrastructure and heavy engineering worldwide.
             </p>
+            {gst && (
+              <p className="text-xs text-gold-light/70 mb-5" data-testid="text-footer-gst">
+                <span className="font-semibold text-primary">GSTIN:</span> {gst}
+              </p>
+            )}
             <div className="flex flex-wrap gap-2">
-              {SOCIALS.map(({ href, label, Icon, color }) => (
-                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label}
-                  data-testid={`social-${label.toLowerCase().replace(/\W+/g, "-")}`}
-                  className={`w-10 h-10 inline-flex items-center justify-center rounded-full border border-primary/20 text-gold-light/80 transition-all hover:border-primary hover:scale-110 ${color}`}>
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
+              {socials.map((s, idx) => {
+                const Icon = ICONS[s.icon?.toLowerCase()] || Globe;
+                const colorCls = ICON_COLORS[s.icon?.toLowerCase()] || "hover:text-primary";
+                return (
+                  <a key={`${s.label}-${idx}`} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}
+                    data-testid={`social-${s.label.toLowerCase().replace(/\W+/g, "-")}`}
+                    className={`w-10 h-10 inline-flex items-center justify-center rounded-full border border-primary/20 text-gold-light/80 transition-all hover:border-primary hover:scale-110 ${colorCls}`}>
+                    <Icon className="w-4 h-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
 
@@ -153,6 +202,7 @@ const Footer = () => {
               <li><Link to="/standards" className="hover:text-primary transition-colors">Standards</Link></li>
               <li><Link to="/specifications" className="hover:text-primary transition-colors">Specifications</Link></li>
               <li><Link to="/grade-chart" className="hover:text-primary transition-colors">Grade Chart</Link></li>
+              <li><Link to="/calculator" className="hover:text-primary transition-colors">Weight Calculator</Link></li>
               <li><Link to="/gallery" className="hover:text-primary transition-colors">Photos & Videos</Link></li>
               <li><a href="/api/catalog.pdf" className="hover:text-primary transition-colors">Download Catalog</a></li>
             </ul>
@@ -163,22 +213,22 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-gold-light/60">
               <li className="flex items-start gap-2">
                 <Mail className="w-4 h-4 mt-0.5 text-primary/70 shrink-0" />
-                <a href="mailto:miengineering17@gmail.com" className="hover:text-primary transition-colors break-all">miengineering17@gmail.com</a>
+                <a href={`mailto:${email}`} className="hover:text-primary transition-colors break-all">{email}</a>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 mt-0.5 text-primary/70 shrink-0" />
                 <div>
-                  <a href="tel:+919819972301" className="hover:text-primary transition-colors block">+91 98199 72301</a>
-                  <a href="tel:+919137658733" className="hover:text-primary transition-colors block">+91 91376 58733</a>
+                  <a href={`tel:${phone1.replace(/\s/g, "")}`} className="hover:text-primary transition-colors block">{phone1}</a>
+                  {phone2 && <a href={`tel:${phone2.replace(/\s/g, "")}`} className="hover:text-primary transition-colors block">{phone2}</a>}
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <MessageCircle className="w-4 h-4 mt-0.5 text-primary/70 shrink-0" />
-                <a href="https://wa.me/919819972301" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">WhatsApp Chat</a>
+                <a href={`https://wa.me/${phone1.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">WhatsApp Chat</a>
               </li>
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 text-primary/70 shrink-0" />
-                <span>301, 01, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon, Mumbai – 400004</span>
+                <span>{address}</span>
               </li>
             </ul>
           </div>
@@ -187,7 +237,7 @@ const Footer = () => {
 
       <div className="border-t border-primary/10">
         <div className="container py-5 flex flex-col md:flex-row items-center justify-between gap-2 text-xs text-gold-light/40">
-          <p>© {new Date().getFullYear()} M.I. Engineering Works. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {brandName}. All rights reserved.{gst ? <span className="ml-2">· GSTIN {gst}</span> : null}</p>
           <p>Engineered Quality · ASTM · DIN · ISO · BS · IS Compliant</p>
         </div>
       </div>

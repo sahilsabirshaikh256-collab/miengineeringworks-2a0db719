@@ -46,6 +46,9 @@ app.post("/api/admin/login", async (req, res) => {
   res.json({ token: signToken({ id: u.id, username: u.username }) });
 });
 
+// Verify a token is still valid (used by RequireAdmin to harden client-side guard)
+app.get("/api/admin/verify", requireAuth, (_req, res) => res.json({ ok: true }));
+
 // Public reads
 app.get("/api/products", async (_req, res) => res.json(await storage.listProducts()));
 app.get("/api/products/:slug", async (req, res) => {
@@ -191,6 +194,22 @@ app.delete("/api/admin/catalog-pdf", requireAuth, async (_req, res) => {
     }
   } catch (e) { console.error("[catalog] delete failed:", e); }
   await storage.upsertSiteContent({ key: "catalog.pdfUrl", value: "" });
+  res.json({ ok: true });
+});
+
+// Ledger / Khata
+app.get("/api/admin/ledger", requireAuth, async (_req, res) => res.json(await storage.listLedger()));
+app.post("/api/admin/ledger", requireAuth, async (req, res) => {
+  try {
+    const parsed = (await import("../shared/schema")).insertLedgerSchema.parse(req.body || {});
+    res.json(await storage.createLedger(parsed));
+  } catch (e: any) { res.status(400).json({ error: e.message || "Invalid data" }); }
+});
+app.patch("/api/admin/ledger/:id", requireAuth, async (req, res) => {
+  res.json(await storage.updateLedger(Number(req.params.id), req.body || {}));
+});
+app.delete("/api/admin/ledger/:id", requireAuth, async (req, res) => {
+  await storage.deleteLedger(Number(req.params.id));
   res.json({ ok: true });
 });
 

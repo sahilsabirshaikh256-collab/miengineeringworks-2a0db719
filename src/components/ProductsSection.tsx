@@ -2,6 +2,7 @@ import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Link } from "react-router-dom";
 import { products } from "@/data/products";
 import { useRef } from "react";
+import { useActiveAnimations } from "@/hooks/useActiveAnimations";
 
 const containerVariants = {
   hidden: {},
@@ -16,7 +17,7 @@ const itemVariants = {
   },
 };
 
-const Product3DCard = ({ product }: { product: typeof products[0] }) => {
+const Product3DCard = ({ product, animClass }: { product: typeof products[0]; animClass: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -46,7 +47,8 @@ const Product3DCard = ({ product }: { product: typeof products[0] }) => {
     >
       <Link
         to={`/product/${product.slug}`}
-        className="group block bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-300 overflow-hidden shadow-elegant hover:shadow-gold"
+        className={`group block bg-card rounded-lg border border-border hover:border-primary/40 transition-all duration-300 overflow-hidden shadow-elegant hover:shadow-gold ${animClass}`}
+        data-testid={`card-product-${product.slug}`}
       >
         <div className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden relative">
           {/* Shine overlay on hover */}
@@ -93,6 +95,8 @@ const Product3DCard = ({ product }: { product: typeof products[0] }) => {
 };
 
 const ProductsSection = () => {
+  const { product } = useActiveAnimations();
+  const animClass = product.cardClass || "";
   return (
     <section id="products" className="py-20 md:py-28 bg-background">
       <div className="container">
@@ -132,7 +136,7 @@ const ProductsSection = () => {
           viewport={{ once: true, margin: "-50px" }}
         >
           {products.map((p) => (
-            <Product3DCard key={p.slug} product={p} />
+            <Product3DCard key={p.slug} product={p} animClass={animClass} />
           ))}
         </motion.div>
       </div>

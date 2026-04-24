@@ -51,6 +51,15 @@ The public `GradeChartSection` and `SpecificationsSection` components read via `
 - DB schema sync: `npm run db:push` (use `--force` if needed). Seed: `npm run db:seed`.
 - Do not edit `package.json`, `vite.config.ts`, `server/vite.ts`, or `drizzle.config.ts`.
 
+## Recent changes (2026-04 — second batch)
+- **Branding & Identity admin** at `/admin/branding`: edit brand name, tagline, logo (upload), favicon (upload — auto-applied to `<head>`), GST number, and a fully editable list of social links (label/icon/URL). Stored in `site_content` keys: `brand.name`, `brand.tagline`, `brand.logo`, `brand.favicon`, `company.gst`, `socials.json`. Defaults pre-loaded (GST `27CBFPM8207D1ZR`).
+- **Footer** now renders brand name, GSTIN, contact info and socials from `site_content`. GST shown both in the brand column and the bottom copyright bar.
+- **Header** logo: clicking the brand name now does a full-page hard-reload to `/` (so animations / site_content / favicon refresh). Renders uploaded logo image when set.
+- **Admin auth hardened**: `RequireAdmin` now calls `GET /api/admin/verify` (server-side JWT check) before mounting any admin page. Stale / invalid tokens are auto-cleared and the user is bounced to `/admin/login` instead of seeing the dashboard.
+- **Animations admin** at `/admin/animations`: choose 1 product-card animation and 1 background animation from preset packs (Lift / Tilt / Glow / Shine / Image-Zoom / Pulse for cards; Gold-Grid / Aurora / Particles / Stripes for background). Install / Unequip per type. CSS lives in `src/index.css` under "Animation Presets". Active IDs stored in `site_content` (`animations.product`, `animations.background`).
+- **Calculator page** at `/calculator` (industrial black/yellow/white): MS/SS material dropdown, diameter, length, qty, rate/kg, profit %, GST toggle + rate. Live results (weight/piece, total weight, base cost, profit, subtotal, GST, grand total, rate/piece). Formula: `D*D*L*factor/1000 kg` (factor 0.0063 for MS, 0.00637 for SS). Light/Dark theme toggle persisted in localStorage. Print button.
+- **Ledger / Khata module** at `/admin/ledger`: new `ledger_entries` table, full CRUD via `/api/admin/ledger`. UI features search, A–Z chip filter, status filter (Paid / Due / All), sticky header, totals (Total Due, Received, Outstanding Balance), edit/delete per row. Auto-derives Paid status when `amountReceived >= amountDue`.
+
 ## Recent changes (2026-04)
 - Admin login now requires password; defaults set to `miengineering@gmail.com` / `6392061892`.
 - Added Email icon to Footer socials.

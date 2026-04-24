@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Menu, X, Phone, Mail, Search, Download } from "lucide-react";
 import SearchDialog from "@/components/SearchDialog";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const navLinks = [
   { label: "Home", section: "home", href: "/" },
@@ -19,6 +20,24 @@ const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { content } = useSiteContent();
+  const brandName = (content["brand.name"] || "M.I. Engineering Works").trim();
+  const brandTagline = (content["brand.tagline"] || "Premium Fastener Solutions").trim();
+  const brandLogo = (content["brand.logo"] || "").trim();
+  const topEmail = (content["contact.email"] || "miengineering17@gmail.com").trim();
+  const topPhone1 = (content["contact.phone1"] || "+91 98199 72301").trim();
+  const topPhone2 = (content["contact.phone2"] || "+91 91376 58733").trim();
+
+  // Hard reload to home so the entire app re-mounts (re-fetches site content, animations, etc.)
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setMobileOpen(false);
+    if (location.pathname === "/") {
+      window.location.reload();
+    } else {
+      window.location.assign("/");
+    }
+  };
 
   // Smooth scroll without modifying URL hash
   const scrollToSection = (id: string) => {
@@ -68,10 +87,25 @@ const Header = () => {
       {/* Main nav */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-card/80 border-b border-primary/10 shadow-elegant">
         <div className="container flex items-center justify-between gap-4 h-16 md:h-20">
-          <Link to="/" className="flex flex-col leading-tight group flex-shrink-0">
-            <span className="font-heading text-xl md:text-2xl font-bold text-gradient-gold">M.I. Engineering Works</span>
-            <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">Premium Fastener Solutions</span>
-          </Link>
+          <a
+            href="/"
+            onClick={handleLogoClick}
+            data-testid="link-logo-home"
+            className="flex items-center gap-3 leading-tight group flex-shrink-0 cursor-pointer"
+          >
+            {brandLogo ? (
+              <img
+                src={brandLogo}
+                alt={brandName}
+                className="h-10 md:h-12 w-auto object-contain"
+                data-testid="img-brand-logo"
+              />
+            ) : null}
+            <span className="flex flex-col">
+              <span className="font-heading text-xl md:text-2xl font-bold text-gradient-gold">{brandName}</span>
+              <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase text-muted-foreground">{brandTagline}</span>
+            </span>
+          </a>
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-5 xl:gap-6">

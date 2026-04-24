@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections } from "../shared/schema";
+import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections, ledgerEntries } from "../shared/schema";
 import { eq, asc, desc } from "drizzle-orm";
-import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection } from "../shared/schema";
+import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection, InsertLedger } from "../shared/schema";
 
 export const storage = {
   // Admin
@@ -77,6 +77,14 @@ export const storage = {
     for (const e of entries) await storage.upsertSiteContent(e);
     return storage.getSiteContentMap();
   },
+
+  // Ledger / Khata
+  listLedger: () => db.select().from(ledgerEntries).orderBy(desc(ledgerEntries.createdAt)),
+  createLedger: (data: InsertLedger) =>
+    db.insert(ledgerEntries).values(data).returning().then((r) => r[0]),
+  updateLedger: (id: number, data: Partial<InsertLedger>) =>
+    db.update(ledgerEntries).set(data).where(eq(ledgerEntries.id, id)).returning().then((r) => r[0]),
+  deleteLedger: (id: number) => db.delete(ledgerEntries).where(eq(ledgerEntries.id, id)),
 
   // Page sections (custom homepage blocks)
   listPageSections: (page = "home") =>

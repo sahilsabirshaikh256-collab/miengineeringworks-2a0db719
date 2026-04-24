@@ -118,6 +118,33 @@ export const insertSiteContentSchema = z.object({
   value: z.string().default(""),
 });
 
+// Ledger / Khata
+export const ledgerEntries = pgTable("ledger_entries", {
+  id: serial("id").primaryKey(),
+  customerName: text("customer_name").notNull(),
+  invoiceDate: text("invoice_date").notNull().default(""),
+  invoiceNo: text("invoice_no").notNull().default(""),
+  amountDue: text("amount_due").notNull().default("0"),
+  paymentDate: text("payment_date").notNull().default(""),
+  amountReceived: text("amount_received").notNull().default("0"),
+  receiptNo: text("receipt_no").notNull().default(""),
+  notes: text("notes").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertLedgerSchema = z.object({
+  customerName: z.string().min(1, "Customer name is required"),
+  invoiceDate: z.string().optional().default(""),
+  invoiceNo: z.string().optional().default(""),
+  amountDue: z.string().optional().default("0"),
+  paymentDate: z.string().optional().default(""),
+  amountReceived: z.string().optional().default("0"),
+  receiptNo: z.string().optional().default(""),
+  notes: z.string().optional().default(""),
+});
+export type LedgerEntry = typeof ledgerEntries.$inferSelect;
+export type InsertLedger = z.infer<typeof insertLedgerSchema>;
+
 export const insertPageSectionSchema = z.object({
   page: z.string().default("home"),
   position: z.string().default("after-stats"),

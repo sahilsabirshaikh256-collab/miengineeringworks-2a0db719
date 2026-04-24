@@ -3,6 +3,25 @@ import { useQuery } from "@tanstack/react-query";
 export type SiteContentMap = Record<string, string>;
 
 export const SITE_CONTENT_DEFAULTS: SiteContentMap = {
+  // Brand / identity
+  "brand.name": "M.I. Engineering Works",
+  "brand.tagline": "Premium Fastener Solutions",
+  "brand.logo": "",
+  "brand.favicon": "",
+  "company.gst": "27CBFPM8207D1ZR",
+  "socials.json": JSON.stringify([
+    { label: "Email", url: "mailto:miengineering17@gmail.com", icon: "mail" },
+    { label: "Google Business Profile", url: "https://share.google/yGOyNRcx1ToTGVGK7", icon: "globe" },
+    { label: "LinkedIn", url: "https://www.linkedin.com/in/mi-engineering-21a878402/", icon: "linkedin" },
+    { label: "X (Twitter)", url: "https://x.com/Engineerin86903", icon: "twitter" },
+    { label: "Facebook", url: "https://www.facebook.com/profile.php?id=61587684155116", icon: "facebook" },
+    { label: "WhatsApp", url: "https://wa.me/919819972301", icon: "whatsapp" },
+  ]),
+
+  // Animation choices (preset IDs)
+  "animations.product": "lift",
+  "animations.background": "none",
+
   // Hero
   "hero.eyebrow": "",
   "hero.title": "ASTM A193 Grade B7",
