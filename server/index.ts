@@ -223,7 +223,9 @@ app.delete("/api/admin/contacts/:id", requireAuth, async (req, res) => {
 // Site content (public read, admin write)
 app.get("/api/site-content", async (_req, res) => res.json(await storage.getSiteContentMap()));
 app.post("/api/admin/site-content", requireAuth, async (req, res) => {
-  const arr = z.array(insertSiteContentSchema).safeParse(req.body);
+  // Accept either a raw array of entries OR { entries: [...] }
+  const payload = Array.isArray(req.body) ? req.body : (req.body && (req.body as any).entries) || [];
+  const arr = z.array(insertSiteContentSchema).safeParse(payload);
   if (!arr.success) return res.status(400).json({ error: arr.error.flatten() });
   res.json(await storage.bulkUpsertSiteContent(arr.data));
 });

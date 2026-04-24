@@ -16,12 +16,12 @@ const AdminDashboard = () => {
   const videosCount = media?.filter((m) => m.type === "video").length;
 
   const cards = [
-    { to: "/admin/products", label: "Products", icon: Package, count: products?.length ?? "…", testId: "stat-products" },
-    { to: "/admin/industries", label: "Industries", icon: Factory, count: industries?.length ?? "…", testId: "stat-industries" },
-    { to: "/admin/standards", label: "Standards", icon: Award, count: standards?.length ?? "…", testId: "stat-standards" },
-    { to: "/admin/media", label: "Photos", icon: ImageIcon, count: photosCount ?? "…", testId: "stat-photos" },
-    { to: "/admin/media", label: "Videos", icon: Video, count: videosCount ?? "…", testId: "stat-videos" },
-    { to: "/admin/contacts", label: "Submissions", icon: Mail, count: contacts?.length ?? "…", testId: "stat-submissions" },
+    { key: "products", to: "/admin/products", label: "Products", icon: Package, count: products?.length ?? "…", testId: "stat-products" },
+    { key: "industries", to: "/admin/industries", label: "Industries", icon: Factory, count: industries?.length ?? "…", testId: "stat-industries" },
+    { key: "standards", to: "/admin/standards", label: "Standards", icon: Award, count: standards?.length ?? "…", testId: "stat-standards" },
+    { key: "photos", to: "/admin/media", label: "Photos", icon: ImageIcon, count: photosCount ?? "…", testId: "stat-photos" },
+    { key: "videos", to: "/admin/media", label: "Videos", icon: Video, count: videosCount ?? "…", testId: "stat-videos" },
+    { key: "submissions", to: "/admin/contacts", label: "Submissions", icon: Mail, count: contacts?.length ?? "…", testId: "stat-submissions" },
   ];
 
   return (
@@ -30,8 +30,8 @@ const AdminDashboard = () => {
       <p className="text-muted-foreground mb-8">Manage all editable content for the website from here.</p>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {cards.map(({ to, label, icon: Icon, count }) => (
-          <Link key={to} to={to} className="bg-card rounded-lg border border-border p-5 hover:border-primary/40 hover:shadow-gold transition">
+        {cards.map(({ key, to, label, icon: Icon, count }) => (
+          <Link key={key} to={to} className="bg-card rounded-lg border border-border p-5 hover:border-primary/40 hover:shadow-gold transition">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
