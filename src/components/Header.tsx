@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Menu, X, Phone, Mail, Search, Download } from "lucide-react";
 import SearchDialog from "@/components/SearchDialog";
 import CategoryDropdown from "@/components/CategoryDropdown";
-import { groupByCategory } from "@/data/categories";
+import NavDropdown, { type NavDropdownItem } from "@/components/NavDropdown";
+import { useCategoryGroups } from "@/data/categories";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { api, type Industry, type Standard } from "@/lib/api";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -26,9 +29,23 @@ const Header = () => {
   const brandName = (content["brand.name"] || "M.I. Engineering Works").trim();
   const brandTagline = (content["brand.tagline"] || "Premium Fastener Solutions").trim();
   const brandLogo = (content["brand.logo"] || "").trim();
-  const topEmail = (content["contact.email"] || "miengineering17@gmail.com").trim();
-  const topPhone1 = (content["contact.phone1"] || "+91 98199 72301").trim();
-  const topPhone2 = (content["contact.phone2"] || "+91 91376 58733").trim();
+
+  const { groups: categoryGroups } = useCategoryGroups();
+
+  // Live data for the Standards & Applications dropdowns
+  const { data: industries = [] } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
+  const { data: standards = [] } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards") });
+
+  const standardItems: NavDropdownItem[] = standards.map((s) => ({
+    slug: s.slug,
+    name: `${s.code} — ${s.name}`,
+    caption: s.region,
+  }));
+  const industryItems: NavDropdownItem[] = industries.map((i) => ({
+    slug: i.slug,
+    name: i.name,
+    caption: i.description?.slice(0, 70),
+  }));
 
   // Hard reload to home so the entire app re-mounts (re-fetches site content, animations, etc.)
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -91,10 +108,39 @@ const Header = () => {
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
-            {navLinks.map((l) =>
-              l.label === "Products" ? (
-                <CategoryDropdown key={l.label} active={isActive(l)} onItemClick={() => setMobileOpen(false)} />
-              ) : (
+            {navLinks.map((l) => {
+              if (l.label === "Products") {
+                return <CategoryDropdown key={l.label} active={isActive(l)} onItemClick={() => setMobileOpen(false)} />;
+              }
+              if (l.label === "Standards") {
+                return (
+                  <NavDropdown
+                    key={l.label}
+                    label="Standards"
+                    rootPath="/standards"
+                    itemPathPrefix="/standards/"
+                    items={standardItems}
+                    active={isActive(l)}
+                    onItemClick={() => setMobileOpen(false)}
+                  />
+                );
+              }
+              if (l.label === "Applications") {
+                return (
+                  <NavDropdown
+                    key={l.label}
+                    label="Applications"
+                    rootPath="/applications"
+                    itemPathPrefix="/industry/"
+                    items={industryItems}
+                    active={isActive(l)}
+                    multiColumn
+                    maxItems={20}
+                    onItemClick={() => setMobileOpen(false)}
+                  />
+                );
+              }
+              return (
                 <Link
                   key={l.label}
                   to={l.href}
@@ -104,8 +150,8 @@ const Header = () => {
                 >
                   {l.label}
                 </Link>
-              ),
-            )}
+              );
+            })}
           </nav>
 
           {/* Right side actions */}
@@ -138,7 +184,7 @@ const Header = () => {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <nav className="lg:hidden backdrop-blur-xl bg-card/95 border-t border-border pb-4">
+          <nav className="lg:hidden backdrop-blur-xl bg-card/95 border-t border-border pb-4 max-h-[80vh] overflow-y-auto">
             {navLinks.map((l) => (
               <div key={l.label}>
                 <Link
@@ -148,9 +194,9 @@ const Header = () => {
                 >
                   {l.label}
                 </Link>
-                {l.label === "Products" && (
+                {l.label === "Products" && categoryGroups.length > 0 && (
                   <div className="pl-10 pb-2 space-y-1">
-                    {groupByCategory().map((g) => (
+                    {categoryGroups.map((g) => (
                       <Link
                         key={g.slug}
                         to={`/products/category/${g.slug}`}
@@ -159,6 +205,36 @@ const Header = () => {
                         className="block py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary transition-colors"
                       >
                         {g.name} <span className="text-[10px] opacity-60">({g.count})</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {l.label === "Standards" && standardItems.length > 0 && (
+                  <div className="pl-10 pb-2 space-y-1">
+                    {standardItems.slice(0, 8).map((s) => (
+                      <Link
+                        key={s.slug}
+                        to={`/standards/${s.slug}`}
+                        onClick={() => setMobileOpen(false)}
+                        data-testid={`mobile-link-standard-${s.slug}`}
+                        className="block py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {s.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+                {l.label === "Applications" && industryItems.length > 0 && (
+                  <div className="pl-10 pb-2 space-y-1">
+                    {industryItems.slice(0, 10).map((i) => (
+                      <Link
+                        key={i.slug}
+                        to={`/industry/${i.slug}`}
+                        onClick={() => setMobileOpen(false)}
+                        data-testid={`mobile-link-industry-${i.slug}`}
+                        className="block py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {i.name}
                       </Link>
                     ))}
                   </div>

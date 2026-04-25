@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
-import { products } from "@/data/products";
+import { useQuery } from "@tanstack/react-query";
+import { api, type Product } from "@/lib/api";
 import {
   Carousel,
   CarouselContent,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/carousel";
 
 const ProductSlider = () => {
+  const { data: products = [] } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
   return (
     <section className="py-16 md:py-20 bg-secondary/20 overflow-hidden" aria-label="ASTM A193 Grade B7 Fasteners Collection">
       <div className="container">
@@ -68,7 +70,7 @@ const ProductSlider = () => {
                         className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                       />
                       <motion.img
-                        src={product.img}
+                        src={product.image}
                         alt={`${product.name} ASTM A193 Grade B7 manufacturer supplier Mumbai India - M.I. Engineering Works`}
                         loading="lazy"
                         width={300}

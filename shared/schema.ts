@@ -8,6 +8,19 @@ export const adminUsers = pgTable("admin_users", {
   passwordHash: text("password_hash").notNull(),
 });
 
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  image: text("image").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   slug: varchar("slug", { length: 128 }).notNull().unique(),

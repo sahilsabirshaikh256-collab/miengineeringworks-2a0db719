@@ -1,8 +1,9 @@
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Link } from "react-router-dom";
-import { products } from "@/data/products";
+import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 import { useActiveAnimations } from "@/hooks/useActiveAnimations";
+import { api, type Product } from "@/lib/api";
 
 const containerVariants = {
   hidden: {},
@@ -17,7 +18,7 @@ const itemVariants = {
   },
 };
 
-const Product3DCard = ({ product, animClass }: { product: typeof products[0]; animClass: string }) => {
+const Product3DCard = ({ product, animClass }: { product: Product; animClass: string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -64,7 +65,7 @@ const Product3DCard = ({ product, animClass }: { product: typeof products[0]; an
             transition={{ duration: 1.2, repeat: Infinity }}
           />
           <motion.img
-            src={product.img}
+            src={product.image}
             alt={`${product.name} ASTM A193 Grade B7 - M.I. Engineering Works Mumbai`}
             loading="lazy"
             width={512}
@@ -97,6 +98,7 @@ const Product3DCard = ({ product, animClass }: { product: typeof products[0]; an
 const ProductsSection = () => {
   const { product } = useActiveAnimations();
   const animClass = product.cardClass || "";
+  const { data: products = [] } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
   return (
     <section id="products" className="py-20 md:py-28 bg-background">
       <div className="container">

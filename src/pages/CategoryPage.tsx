@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import SEO from "@/components/SEO";
-import { CATEGORY_BY_SLUG, productsInCategory, groupByCategory } from "@/data/categories";
+import { useCategoryBySlug, useProductsInCategory, useCategoryGroups } from "@/data/categories";
 
 const containerVariants = {
   hidden: {},
@@ -18,12 +18,23 @@ const itemVariants = {
 
 export default function CategoryPage() {
   const { category } = useParams<{ category: string }>();
-  const cat = category ? CATEGORY_BY_SLUG[category] : undefined;
+  const cat = useCategoryBySlug(category);
+  const { products: items, isLoading } = useProductsInCategory(category);
+  const { groups } = useCategoryGroups();
+  const otherCats = groups.filter((g) => g.slug !== category);
 
-  if (!cat) return <Navigate to="/products" replace />;
-
-  const items = productsInCategory(cat.slug);
-  const otherCats = groupByCategory().filter((g) => g.slug !== cat.slug);
+  if (!isLoading && !cat) return <Navigate to="/products" replace />;
+  if (!cat) {
+    return (
+      <PageTransition>
+        <Header />
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <Footer />
+      </PageTransition>
+    );
+  }
 
   return (
     <PageTransition>
@@ -82,7 +93,7 @@ export default function CategoryPage() {
                     >
                       <div className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden">
                         <img
-                          src={p.img}
+                          src={p.image}
                           alt={`${p.name} — ${cat.name}`}
                           loading="lazy"
                           width={512}

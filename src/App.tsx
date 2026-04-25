@@ -37,6 +37,7 @@ const AdminContent = lazy(() => import("./pages/admin/AdminContent.tsx"));
 const AdminSections = lazy(() => import("./pages/admin/AdminSections.tsx"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.tsx"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts.tsx"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories.tsx"));
 const AdminIndustries = lazy(() => import("./pages/admin/AdminIndustries.tsx"));
 const AdminStandards = lazy(() => import("./pages/admin/AdminStandards.tsx"));
 const AdminContacts = lazy(() => import("./pages/admin/AdminContacts.tsx"));
@@ -94,6 +95,7 @@ const AnimatedRoutes = () => {
           <Route path="/admin/calculator" element={<RequireAdmin><CalculatorPage /></RequireAdmin>} />
           <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
           <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
+          <Route path="/admin/categories" element={<RequireAdmin><AdminCategories /></RequireAdmin>} />
           <Route path="/admin/industries" element={<RequireAdmin><AdminIndustries /></RequireAdmin>} />
           <Route path="/admin/standards" element={<RequireAdmin><AdminStandards /></RequireAdmin>} />
           <Route path="/admin/media" element={<RequireAdmin><AdminMedia /></RequireAdmin>} />

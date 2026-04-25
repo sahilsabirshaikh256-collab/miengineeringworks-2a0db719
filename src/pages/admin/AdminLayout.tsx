@@ -10,6 +10,7 @@ const links = [
   { to: "/admin/animations", label: "Animations", icon: Sparkles },
   { to: "/admin/content", label: "Site Content", icon: FileText },
   { to: "/admin/sections", label: "Custom Sections", icon: LayoutGrid },
+  { to: "/admin/categories", label: "Categories", icon: LayoutGrid },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/applications", label: "Applications / Use Cases", icon: Layers },
   { to: "/admin/industries", label: "Industries (Advanced)", icon: Factory },

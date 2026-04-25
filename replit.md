@@ -23,7 +23,14 @@ Marketing + content-managed site for M.I. Engineering Works, manufacturer of AST
   - Email: `miengineering@gmail.com` (also accepts `miengineering17@gmail.com`)
   - Password: `6392061892`
 - Bootstrap on server start: creates/updates admin users with the env password each boot so credentials stay in sync.
-- **Sections**: Dashboard, Site Content, Custom Sections, Products, Industries, Standards, Grade Chart, Specifications, PDF Catalog, Photos & Videos, Submissions.
+- **Sections**: Dashboard, Site Content, Custom Sections, Categories, Products, Industries, Standards, Grade Chart, Specifications, PDF Catalog, Photos & Videos, Submissions.
+
+### Catalog & Categories
+- 8 product categories (Bolts, Nuts, Screws, Washers, Rivets, Anchors, Studs, Bars) and 44 products are seeded into Postgres on first run.
+- Categories table: `categories` (id, slug, name, description, image, sortOrder). Public `GET /api/categories`; admin CRUD at `/api/admin/categories`. Managed in `/admin/categories`.
+- Products carry a `category` text field that matches a category `name`. Edit on `/admin/products` via a dropdown sourced from the categories table.
+- Header mega-menus for **Products** (groups by category), **Standards**, and **Applications** all read live from the API. Mobile menu mirrors the same structure.
+- Frontend grouping logic lives in `src/data/categories.ts` (`useCategoryGroups`, `useCategoryBySlug`, `useProductsInCategory` hooks).
 
 ### Editable Grade Chart & Specifications
 Stored as JSON strings in `site_content` rows under these keys (with hardcoded factory defaults if unset):

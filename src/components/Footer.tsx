@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2, MessageCircle, Linkedin, Facebook, Twitter, Globe, Instagram, Youtube, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { products } from "@/data/products";
+import { useQuery } from "@tanstack/react-query";
+import { api, type Product } from "@/lib/api";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/hooks/useSiteContent";
 
 type SocialDef = { label: string; url: string; icon: string };
@@ -39,6 +40,7 @@ const ICON_COLORS: Record<string, string> = {
 
 const Footer = () => {
   const { content } = useSiteContent();
+  const { data: products = [] } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
   const brandName = (content["brand.name"] || "M.I. Engineering Works").trim();
   const gst = (content["company.gst"] || "27CBFPM8207D1ZR").trim();
   const email = (content["contact.email"] || "miengineering17@gmail.com").trim();

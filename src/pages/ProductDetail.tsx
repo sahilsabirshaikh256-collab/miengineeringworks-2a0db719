@@ -1,15 +1,25 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2, Phone, Mail } from "lucide-react";
-import { getProductBySlug, products } from "@/data/products";
+import { api, type Product } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const product = getProductBySlug(slug || "");
+  const { data: product, isLoading } = useQuery<Product>({
+    queryKey: ["/api/products", slug],
+    queryFn: () => api(`/api/products/${slug}`),
+    enabled: !!slug,
+    retry: false,
+  });
+  const { data: allProducts = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+    queryFn: () => api("/api/products"),
+  });
 
   // SEO: Dynamic document title and meta
   useEffect(() => {
@@ -39,7 +49,7 @@ const ProductDetail = () => {
         "@type": "Product",
         name: product.name,
         description: product.description,
-        image: product.img,
+        image: product.image,
         sku: product.slug,
         brand: { "@type": "Brand", name: "M.I. Engineering Works" },
         manufacturer: {
@@ -67,6 +77,18 @@ const ProductDetail = () => {
     }
   }, [product]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!product) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -82,7 +104,7 @@ const ProductDetail = () => {
     );
   }
 
-  const relatedProducts = products.filter((p) => p.slug !== product.slug).slice(0, 4);
+  const relatedProducts = allProducts.filter((p) => p.slug !== product.slug).slice(0, 4);
 
   return (
     <PageTransition>
@@ -134,7 +156,7 @@ const ProductDetail = () => {
                 />
                 {/* Floating 3D product image */}
                 <motion.img
-                  src={product.img}
+                  src={product.image}
                   alt={`${product.name} ASTM A193 Grade B7 - M.I. Engineering Works Mumbai`}
                   width={600}
                   height={600}
@@ -362,7 +384,7 @@ const ProductDetail = () => {
                 >
                   <div className="aspect-square bg-secondary/30 flex items-center justify-center p-4 overflow-hidden">
                     <motion.img
-                      src={p.img}
+                      src={p.image}
                       alt={p.name}
                       loading="lazy"
                       width={256}

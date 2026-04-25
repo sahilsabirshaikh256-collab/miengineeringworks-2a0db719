@@ -1,11 +1,18 @@
 import "dotenv/config";
 import { db } from "./db";
-import { products, industries, standards } from "../shared/schema";
-import { productsSeed, industriesSeed, standardsSeed } from "./seed-data";
+import { products, industries, standards, categories } from "../shared/schema";
+import { productsSeed, industriesSeed, standardsSeed, categoriesSeed } from "./seed-data";
 import { sql } from "drizzle-orm";
 
 async function main() {
   const force = process.argv.includes("--force");
+
+  const [{ count: cCount }] = (await db.execute(sql`select count(*)::int as count from categories`)).rows as any[];
+  if (cCount === 0 || force) {
+    if (force) await db.delete(categories);
+    for (const c of categoriesSeed) await db.insert(categories).values(c as any);
+    console.log(`[seed] categories: ${categoriesSeed.length}`);
+  } else console.log(`[seed] categories already populated (${cCount}), skip`);
 
   const [{ count: pCount }] = (await db.execute(sql`select count(*)::int as count from products`)).rows as any[];
   if (pCount === 0 || force) {

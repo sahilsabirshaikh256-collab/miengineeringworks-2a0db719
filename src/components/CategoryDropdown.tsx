@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { groupByCategory } from "@/data/categories";
+import { useCategoryGroups } from "@/data/categories";
 
 interface CategoryDropdownProps {
   active: boolean;
@@ -12,7 +12,7 @@ const CategoryDropdown = ({ active, onItemClick }: CategoryDropdownProps) => {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const location = useLocation();
-  const groups = groupByCategory();
+  const { groups } = useCategoryGroups();
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
@@ -48,8 +48,8 @@ const CategoryDropdown = ({ active, onItemClick }: CategoryDropdownProps) => {
           onMouseLeave={scheduleClose}
           data-testid="dropdown-categories"
         >
-          <div className="bg-card border border-primary/15 rounded-lg shadow-elegant overflow-hidden w-[640px] max-w-[92vw]">
-            <div className="grid grid-cols-2 gap-0 divide-x divide-border/60">
+          <div className="bg-card border border-primary/15 rounded-lg shadow-elegant overflow-hidden w-[760px] max-w-[92vw]">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-border/60">
               {groups.map((g) => (
                 <div key={g.slug} className="p-4">
                   <Link
@@ -62,11 +62,11 @@ const CategoryDropdown = ({ active, onItemClick }: CategoryDropdownProps) => {
                       {g.name}
                     </span>
                     <span className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
-                      View all ({g.count}) →
+                      ({g.count})
                     </span>
                   </Link>
                   <ul className="space-y-1.5">
-                    {g.products.slice(0, 4).map((p) => (
+                    {g.products.slice(0, 5).map((p) => (
                       <li key={p.slug}>
                         <Link
                           to={`/product/${p.slug}`}
@@ -76,7 +76,7 @@ const CategoryDropdown = ({ active, onItemClick }: CategoryDropdownProps) => {
                         >
                           <span className="w-7 h-7 flex-shrink-0 rounded bg-secondary/40 border border-border/60 overflow-hidden flex items-center justify-center">
                             <img
-                              src={p.img}
+                              src={p.image}
                               alt=""
                               loading="lazy"
                               className="w-full h-full object-contain"

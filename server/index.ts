@@ -6,7 +6,7 @@ import fs from "fs";
 import multer from "multer";
 import { storage } from "./storage";
 import { hashPassword, verifyPassword, signToken, requireAuth } from "./auth";
-import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema, insertMediaSchema, insertSiteContentSchema, insertPageSectionSchema } from "../shared/schema";
+import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertStandardSchema, insertMediaSchema, insertSiteContentSchema, insertPageSectionSchema, insertCategorySchema } from "../shared/schema";
 import { z } from "zod";
 import { generateCatalogPdf } from "./catalog-pdf";
 import { sendContactEmail } from "./mailer";
@@ -104,6 +104,12 @@ app.post("/api/admin/login", async (req, res) => {
 app.get("/api/admin/verify", requireAuth, (_req, res) => res.json({ ok: true }));
 
 // Public reads
+app.get("/api/categories",       wrap(async (_req, res) => res.json(await storage.listCategories())));
+app.get("/api/categories/:slug", wrap(async (req, res) => {
+  const c = await storage.getCategory(req.params.slug);
+  if (!c) return res.status(404).json({ error: "Not found" });
+  res.json(c);
+}));
 app.get("/api/products",       wrap(async (_req, res) => res.json(await storage.listProducts())));
 app.get("/api/products/:slug", wrap(async (req, res) => {
   const p = await storage.getProduct(req.params.slug);
@@ -137,6 +143,20 @@ app.post("/api/admin/upload", requireAuth, upload.single("file"), (req, res) => 
   if (!req.file) return res.status(400).json({ error: "No file" });
   res.json({ url: `/uploads/${req.file.filename}` });
 });
+
+// Admin: categories CRUD
+app.post("/api/admin/categories",      requireAuth, wrap(async (req, res) => {
+  const parsed = insertCategorySchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+  res.json(await storage.upsertCategory(parsed.data));
+}));
+app.patch("/api/admin/categories/:id", requireAuth, wrap(async (req, res) => {
+  res.json(await storage.updateCategory(Number(req.params.id), req.body));
+}));
+app.delete("/api/admin/categories/:id", requireAuth, wrap(async (req, res) => {
+  await storage.deleteCategory(Number(req.params.id));
+  res.json({ ok: true });
+}));
 
 // Admin: products CRUD
 app.post("/api/admin/products",      requireAuth, wrap(async (req, res) => {

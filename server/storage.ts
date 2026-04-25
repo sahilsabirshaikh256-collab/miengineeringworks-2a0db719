@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections, ledgerEntries, customers } from "../shared/schema";
+import { adminUsers, products, industries, standards, contactSubmissions, media, siteContent, pageSections, ledgerEntries, customers, categories } from "../shared/schema";
 import { eq, asc, desc } from "drizzle-orm";
-import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection, InsertLedger, InsertCustomer } from "../shared/schema";
+import type { InsertProduct, InsertIndustry, InsertStandard, InsertContact, InsertMedia, InsertSiteContent, InsertPageSection, InsertLedger, InsertCustomer, InsertCategory } from "../shared/schema";
 
 export const storage = {
   // Admin
@@ -19,6 +19,18 @@ export const storage = {
   updateMedia: (id: number, data: Partial<InsertMedia>) =>
     db.update(media).set(data).where(eq(media.id, id)).returning().then((r) => r[0]),
   deleteMedia: (id: number) => db.delete(media).where(eq(media.id, id)),
+
+  // Categories
+  listCategories: () => db.select().from(categories).orderBy(asc(categories.sortOrder)),
+  getCategory: (slug: string) => db.select().from(categories).where(eq(categories.slug, slug)).then((r) => r[0]),
+  upsertCategory: async (data: InsertCategory) => {
+    const existing = await db.select().from(categories).where(eq(categories.slug, data.slug)).then((r) => r[0]);
+    if (existing) return db.update(categories).set(data).where(eq(categories.id, existing.id)).returning().then((r) => r[0]);
+    return db.insert(categories).values(data).returning().then((r) => r[0]);
+  },
+  updateCategory: (id: number, data: Partial<InsertCategory>) =>
+    db.update(categories).set(data).where(eq(categories.id, id)).returning().then((r) => r[0]),
+  deleteCategory: (id: number) => db.delete(categories).where(eq(categories.id, id)),
 
   // Products
   listProducts: () => db.select().from(products).orderBy(asc(products.sortOrder)),
