@@ -32,19 +32,38 @@ const upload = multer({ storage: storageMulter, limits: { fileSize: 10 * 1024 * 
 
 // Auth
 app.post("/api/admin/login", async (req, res) => {
-  const { username, password } = req.body || {};
-  if (!username || !password) return res.status(400).json({ error: "Email and password are required" });
-  const submitted = String(username || "").trim().toLowerCase();
-  const allowedEmails = (process.env.ADMIN_USERNAME || "miengineering@gmail.com,miengineering17@gmail.com")
-    .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-  if (!allowedEmails.includes(submitted)) {
-    return res.status(401).json({ error: "Only the admin email is allowed to sign in." });
+  try {
+    // Safely destructure body — body may be undefined if body-parser failed
+    const body = req.body ?? {};
+    const { username, password } = body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const submitted = String(username).trim().toLowerCase();
+    const allowedEmails = (process.env.ADMIN_USERNAME || "miengineering@gmail.com,miengineering17@gmail.com")
+      .split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
+
+    if (!allowedEmails.includes(submitted)) {
+      return res.status(401).json({ error: "Only the admin email is allowed to sign in." });
+    }
+
+    const u = await storage.getAdminByUsername(submitted);
+    if (!u) return res.status(401).json({ error: "Admin not initialised" });
+
+    const ok = await verifyPassword(String(password), u.passwordHash);
+    if (!ok) return res.status(401).json({ error: "Invalid password" });
+
+    res.json({ token: signToken({ id: u.id, username: u.username }) });
+  } catch (e: any) {
+    console.error("[login] Error:", e.message, e.stack);
+    let msg = "Internal server error during login.";
+    if (e.message?.includes("ECONNREFUSED") || e.message?.includes("connect") || e.message?.includes("timeout")) {
+      msg = "Cannot reach the database. Ensure DATABASE_URL points to a publicly accessible PostgreSQL server.";
+    }
+    res.status(500).json({ error: msg });
   }
-  const u = await storage.getAdminByUsername(submitted);
-  if (!u) return res.status(401).json({ error: "Admin not initialised" });
-  const ok = await verifyPassword(String(password), u.passwordHash);
-  if (!ok) return res.status(401).json({ error: "Invalid password" });
-  res.json({ token: signToken({ id: u.id, username: u.username }) });
 });
 
 // Verify a token is still valid (used by RequireAdmin to harden client-side guard)
@@ -375,6 +394,22 @@ app.get("/api/admin/mi/backups/:file/download", requireAuth, (req, res) => {
   const full = path.resolve("data/backups", safe);
   if (!fs.existsSync(full)) return res.status(404).json({ error: "Not found" });
   res.download(full, safe);
+});
+
+// ── Global error handler — catches any unhandled error from any route ──────────
+// Must have exactly 4 parameters for Express to recognise it as an error handler.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error("[express] Unhandled error:", err?.message ?? err);
+  console.error("[express] Stack:", err?.stack ?? "(no stack)");
+
+  let message = "Internal server error.";
+  if (err?.message?.includes("ECONNREFUSED") || err?.message?.includes("timeout") || err?.message?.includes("connect")) {
+    message = "Cannot reach the database. Ensure DATABASE_URL is set and accessible from Vercel.";
+  }
+
+  if (res.headersSent) return;
+  res.status(err?.status ?? 500).json({ error: message });
 });
 
 // Always bootstrap admin accounts (runs on both local and Vercel cold-start)
