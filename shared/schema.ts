@@ -12,6 +12,7 @@ export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   slug: varchar("slug", { length: 128 }).notNull().unique(),
   name: text("name").notNull(),
+  category: varchar("category", { length: 64 }).notNull().default(""),
   image: text("image").notNull(),
   standard: text("standard").notNull(),
   description: text("description").notNull(),

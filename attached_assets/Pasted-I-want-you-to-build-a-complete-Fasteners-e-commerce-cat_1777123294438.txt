@@ -1,0 +1,167 @@
+I want you to build a complete Fasteners e-commerce/catalog management system inside my existing project.
+
+This is a professional industrial fasteners website project, so structure it properly like a real business inventory system.
+
+---
+
+## 🧩 1. Database / Data Structure
+
+Create a proper product model (database or JSON structure depending on project setup) with the following fields:
+
+* id (auto-generated)
+* name (string)
+* category (enum/string)
+* subcategory (optional)
+* size (optional, e.g. M6, M8, M10, inches)
+* material (MS / SS / Brass / Alloy Steel)
+* finish (Zinc / Black / Plain / Galvanized)
+* description (text)
+* price (optional)
+* imageUrl (string)
+* stock (optional)
+* createdAt (timestamp)
+
+---
+
+## 📦 2. Categories and Products
+
+Create these main categories:
+
+### 🔩 Bolts
+
+* Hex Bolt (Full Thread / Half Thread)
+* Carriage Bolt
+* Eye Bolt
+* U Bolt
+* J Bolt
+* Anchor Bolt
+* Flange Bolt
+* Allen Bolt (Socket Head Cap Screw)
+* Stud Bolt
+
+### 🔩 Nuts
+
+* Hex Nut
+* Lock Nut (Nylock Nut)
+* Wing Nut
+* Cap Nut
+* Flange Nut
+* Square Nut
+* Coupling Nut
+* Weld Nut
+
+### 🔩 Screws
+
+* Self Tapping Screw
+* Self Drilling Screw
+* Machine Screw
+* Wood Screw
+* Drywall Screw
+* Set Screw (Grub Screw)
+* Socket Head Screw
+* Countersunk Screw
+
+### 🔩 Washers
+
+* Plain Washer
+* Spring Washer
+* Lock Washer
+* Fender Washer
+* Tooth Lock Washer
+* Flat Washer
+* Belleville Washer
+
+### 🔩 Rivets
+
+* Blind Rivet (Pop Rivet)
+* Solid Rivet
+* Semi Tubular Rivet
+* Drive Rivet
+* Structural Rivet
+
+### 🔩 Anchors
+
+* Wedge Anchor
+* Sleeve Anchor
+* Chemical Anchor
+* Drop-in Anchor
+* Expansion Anchor
+* Hammer Drive Anchor
+
+### 🔩 Studs
+
+* Full Thread Stud
+* Double End Stud
+* Tap End Stud
+* Threaded Rod (All Thread)
+* Welding Stud
+
+---
+
+## 🧑‍💼 3. Admin Panel Features
+
+Create a complete admin dashboard with:
+
+* Login protected admin access
+* Add new product form
+* Edit existing product
+* Delete product
+* View all products in table/grid
+* Search and filter by category
+* Image upload support (if possible)
+
+---
+
+## 🌐 4. Frontend Website Features
+
+* Dynamic product listing from database
+* Category-wise filtering (Bolts, Nuts, etc.)
+* Product detail page
+* Responsive design (mobile friendly)
+* Clean industrial UI (professional look)
+
+---
+
+## 🔗 5. Backend/API Requirements
+
+If using Node.js:
+
+* Create REST APIs:
+
+  * GET /products
+  * POST /products
+  * PUT /products/:id
+  * DELETE /products/:id
+
+If using any DB:
+
+* Connect properly (MongoDB / Firebase / SQL depending on setup)
+
+---
+
+## 🔐 6. Authentication
+
+* Secure admin login system
+* Use environment variables for credentials
+* Protect admin routes
+
+---
+
+## ⚠️ IMPORTANT INSTRUCTIONS
+
+* Do NOT break existing project structure
+* Integrate with current login system if already present
+* Make sure data flows correctly between admin panel → database → frontend
+* Ensure project runs without errors
+* Provide clean, production-ready code
+
+---
+
+## 🎯 FINAL GOAL
+
+A fully working industrial fasteners system:
+
+* Admin panel for managing products
+* Database connected system
+* Dynamic frontend product display
+* Production-ready structure

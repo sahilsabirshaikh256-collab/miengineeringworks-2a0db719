@@ -14,6 +14,7 @@ import roundBar from "@/assets/round-bar.jpg";
 export interface Product {
   slug: string;
   name: string;
+  category: string;
   img: string;
   standard: string;
   description: string;
@@ -31,6 +32,7 @@ export const products: Product[] = [
   {
     slug: "stud-bolts",
     name: "Stud Bolts",
+    category: "Studs",
     img: studBolt,
     standard: "ASME B16.5 / DIN 976",
     description: "Fully threaded or partially threaded stud bolts manufactured from ASTM A193 Grade B7 chromium-molybdenum steel. Designed for high-temperature, high-pressure flange connections in petrochemical, oil & gas, and power generation industries.",
@@ -53,6 +55,7 @@ export const products: Product[] = [
   {
     slug: "double-end-studs",
     name: "Double End Studs",
+    category: "Studs",
     img: doubleEndStud,
     standard: "ASME B18.2.1 / DIN 2510",
     description: "Double end studs with equal or unequal thread lengths on both ends. Used in applications where bolts cannot be used due to space constraints. Manufactured to ASTM A193 B7 specifications for critical high-pressure service.",
@@ -75,6 +78,7 @@ export const products: Product[] = [
   {
     slug: "hex-bolts",
     name: "Hex Bolts",
+    category: "Bolts",
     img: hexBolt,
     standard: "ASME B18.2.1 / DIN 931",
     description: "Hexagonal head bolts manufactured from high-strength alloy steel per ASTM A193 Grade B7. Available in full thread and partial thread configurations for structural and industrial fastening applications.",
@@ -97,6 +101,7 @@ export const products: Product[] = [
   {
     slug: "heavy-hex-bolts",
     name: "Heavy Hex Bolts",
+    category: "Bolts",
     img: heavyHexBolt,
     standard: "ASME B18.2.1 / DIN 6914",
     description: "Heavy hexagonal head bolts with larger head dimensions for greater bearing surface area. Designed for high-strength structural and pressure applications. Manufactured from ASTM A193 Grade B7 alloy steel.",
@@ -119,6 +124,7 @@ export const products: Product[] = [
   {
     slug: "socket-head-cap-screws",
     name: "Socket Head Cap Screws",
+    category: "Screws",
     img: socketCapScrew,
     standard: "ASME B18.3 / DIN 912",
     description: "High-strength socket head cap screws with cylindrical heads and internal hexagonal (Allen) drive. Ideal for applications requiring a flush or recessed head. Available in ASTM A193 Grade B7 and higher grades.",
@@ -141,6 +147,7 @@ export const products: Product[] = [
   {
     slug: "countersunk-screws",
     name: "Countersunk Screws",
+    category: "Screws",
     img: countersunkScrew,
     standard: "ASME B18.3 / DIN 7991",
     description: "Flat-head countersunk socket screws with 90° head angle for flush mounting applications. Manufactured from high-grade alloy steel with precision threading for critical assemblies.",
@@ -163,6 +170,7 @@ export const products: Product[] = [
   {
     slug: "socket-set-screws",
     name: "Socket Set Screws",
+    category: "Screws",
     img: setScrew,
     standard: "ASME B18.3 / DIN 913-916",
     description: "Headless set screws with internal hex drive, available in flat, cup, cone, and dog point styles. Used for securing pulleys, gears, and collars on shafts. Manufactured to high hardness specifications.",
@@ -184,6 +192,7 @@ export const products: Product[] = [
   {
     slug: "eye-bolts",
     name: "Eye Bolts",
+    category: "Bolts",
     img: eyeBolt,
     standard: "ASME B18.15 / DIN 444",
     description: "Forged eye bolts with circular loop head for lifting, rigging, and anchoring applications. Available in shouldered and non-shouldered types. Manufactured from high-strength alloy steel for safe working loads.",
@@ -205,6 +214,7 @@ export const products: Product[] = [
   {
     slug: "u-bolts",
     name: "U Bolts",
+    category: "Bolts",
     img: uBolt,
     standard: "ASME B18.31.5 / DIN 3570",
     description: "U-shaped bolts used for clamping pipes, tubes, and round sections to structural supports. Available in round bend and square bend configurations. Manufactured from high-tensile alloy and stainless steel.",
@@ -226,6 +236,7 @@ export const products: Product[] = [
   {
     slug: "anchor-bolts",
     name: "Anchor Bolts",
+    category: "Bolts",
     img: anchorBolt,
     standard: "DIN 529",
     description: "L-shaped, J-shaped, and straight anchor bolts for embedding in concrete foundations. Used for securing structural columns, heavy machinery, and equipment bases. Custom lengths and configurations available.",
@@ -247,6 +258,7 @@ export const products: Product[] = [
   {
     slug: "threaded-rods",
     name: "Threaded Rods",
+    category: "Studs",
     img: threadedRod,
     standard: "DIN 976 / ASME B18.31.2",
     description: "Fully threaded rods (all-thread rods) manufactured from ASTM A193 Grade B7 alloy steel. Used for through-bolting, anchor applications, and as general-purpose fasteners in construction and industrial settings.",
@@ -269,6 +281,7 @@ export const products: Product[] = [
   {
     slug: "round-bars",
     name: "Round Bars",
+    category: "Bars",
     img: roundBar,
     standard: "AISI 4140 / 4142",
     description: "High-quality alloy steel round bars for machining fasteners, shafts, and custom components. Supplied in hot-rolled, cold-drawn, and peeled/ground conditions. Available in AISI 4140, 4142, and equivalent grades.",

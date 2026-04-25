@@ -86,6 +86,15 @@ The public `GradeChartSection` and `SpecificationsSection` components read via `
 - **SEO component** at `src/components/SEO.tsx`: emits unique title/description/keywords, OG/Twitter cards, canonical URL, geo (Mumbai/IN-MH), JSON-LD Organization. Used on Products / About / Contact pages.
 - **MI Chat** at `/admin/mi`: locally-running admin assistant (no external/paid AI). Commands (Hindi+English): `backup`, `restore`, `list backups`, `health` / `fix`, `stats`, `help`. Chat UI shows action chips, backup list cards, health metrics. Backed by `server/mi-service.ts` and 5 endpoints under `/api/admin/mi/*`. Backup files saved to `data/backups/*.json` (committed to git so they survive GitHub→Replit roundtrips). Auto first-run backup created on server boot if none exist.
 
+## Recent changes (2026-04 — fifth batch: category navigation)
+- Added `category` column (varchar 64, default "") to `products` table; pushed via drizzle-kit.
+- Categorized all 12 static products in `src/data/products.ts` (Bolts, Studs, Screws, Bars).
+- Added `src/data/categories.ts` with `CATEGORY_DEFS`, `groupByCategory()`, `productsInCategory()`, `slugifyCategory()` helpers — single source of truth for the 8 supported categories.
+- New `src/components/CategoryDropdown.tsx`: hover-triggered dropdown on the "Products" nav link showing each non-empty category with its top 4 products + image thumbnails. Matches existing dark/gold theme (bg-card, border-primary/15, gold gradient headings).
+- Header.tsx renders `CategoryDropdown` for "Products" link (desktop) and shows category sub-links indented under "Products" in the mobile menu.
+- New `src/pages/CategoryPage.tsx` at route `/products/category/:category` — breadcrumb, gold gradient title, product grid (same card style as `ProductsSection`), "Other categories" pills below.
+- AdminProducts edit form now includes a `category` text field so admins can assign categories to DB products.
+
 ## Recent changes (2026-04 — fourth batch)
 - **Full website backup system** at `/admin/backups` (sidebar: "Backups"). Two backup kinds:
   - **DB** — `.json` of all tables only (small, fast).

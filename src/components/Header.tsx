@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { Menu, X, Phone, Mail, Search, Download } from "lucide-react";
 import SearchDialog from "@/components/SearchDialog";
+import CategoryDropdown from "@/components/CategoryDropdown";
+import { groupByCategory } from "@/data/categories";
 import { useSiteContent } from "@/hooks/useSiteContent";
 
 const navLinks = [
@@ -89,17 +91,21 @@ const Header = () => {
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
-            {navLinks.map((l) => (
-              <Link
-                key={l.label}
-                to={l.href}
-                onClick={() => setMobileOpen(false)}
-                data-testid={`nav-${l.label.toLowerCase()}`}
-                className={`text-sm font-medium transition-colors ${isActive(l) ? "text-primary" : "text-foreground/80 hover:text-primary"}`}
-              >
-                {l.label}
-              </Link>
-            ))}
+            {navLinks.map((l) =>
+              l.label === "Products" ? (
+                <CategoryDropdown key={l.label} active={isActive(l)} onItemClick={() => setMobileOpen(false)} />
+              ) : (
+                <Link
+                  key={l.label}
+                  to={l.href}
+                  onClick={() => setMobileOpen(false)}
+                  data-testid={`nav-${l.label.toLowerCase()}`}
+                  className={`text-sm font-medium transition-colors ${isActive(l) ? "text-primary" : "text-foreground/80 hover:text-primary"}`}
+                >
+                  {l.label}
+                </Link>
+              ),
+            )}
           </nav>
 
           {/* Right side actions */}
@@ -134,7 +140,30 @@ const Header = () => {
         {mobileOpen && (
           <nav className="lg:hidden backdrop-blur-xl bg-card/95 border-t border-border pb-4">
             {navLinks.map((l) => (
-              <Link key={l.label} to={l.href} onClick={() => setMobileOpen(false)} className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors">{l.label}</Link>
+              <div key={l.label}>
+                <Link
+                  to={l.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block px-6 py-3 text-foreground/80 hover:text-primary hover:bg-secondary/50 transition-colors"
+                >
+                  {l.label}
+                </Link>
+                {l.label === "Products" && (
+                  <div className="pl-10 pb-2 space-y-1">
+                    {groupByCategory().map((g) => (
+                      <Link
+                        key={g.slug}
+                        to={`/products/category/${g.slug}`}
+                        onClick={() => setMobileOpen(false)}
+                        data-testid={`mobile-link-category-${g.slug}`}
+                        className="block py-1.5 text-xs uppercase tracking-[0.18em] text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {g.name} <span className="text-[10px] opacity-60">({g.count})</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
             <div className="px-6 pt-3 space-y-2 text-sm">
               <a href="/api/catalog.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-gradient-gold text-charcoal font-semibold">
