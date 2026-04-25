@@ -51,6 +51,18 @@ The public `GradeChartSection` and `SpecificationsSection` components read via `
 - DB schema sync: `npm run db:push` (use `--force` if needed). Seed: `npm run db:seed`.
 - Do not edit `package.json`, `vite.config.ts`, `server/vite.ts`, or `drizzle.config.ts`.
 
+## Vercel Deployment
+- Frontend: Vite builds to `dist/` (auto-detected by Vercel).
+- Backend: `api/index.ts` wraps the entire Express app as a single Vercel serverless function.
+- Routing: `vercel.json` rewrites `/api/*` and `/uploads/*` to the serverless function, all other routes to `index.html`.
+- Required environment variables in Vercel dashboard:
+  - `DATABASE_URL` — PostgreSQL connection string (same database as used locally)
+  - `JWT_SECRET` — Secret for signing auth tokens (set a strong random value)
+  - `ADMIN_USERNAME` — Comma-separated admin emails (default: miengineering@gmail.com,miengineering17@gmail.com)
+  - `ADMIN_PASSWORD` — Admin password (default: 6392061892)
+  - `SMTP_USER`, `SMTP_PASS` — (optional) Gmail SMTP credentials for contact form emails
+- Note: File uploads and backups use `/tmp` on Vercel (ephemeral — files are lost between function cold-starts). For persistent uploads, consider moving to a cloud storage provider (S3, Cloudinary, etc.) in a future update.
+
 ## Recent changes (2026-04 — second batch)
 - **Branding & Identity admin** at `/admin/branding`: edit brand name, tagline, logo (upload), favicon (upload — auto-applied to `<head>`), GST number, and a fully editable list of social links (label/icon/URL). Stored in `site_content` keys: `brand.name`, `brand.tagline`, `brand.logo`, `brand.favicon`, `company.gst`, `socials.json`. Defaults pre-loaded (GST `27CBFPM8207D1ZR`).
 - **Footer** now renders brand name, GSTIN, contact info and socials from `site_content`. GST shown both in the brand column and the bottom copyright bar.

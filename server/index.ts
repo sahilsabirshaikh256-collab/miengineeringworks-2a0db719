@@ -16,8 +16,8 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "20mb" }));
 
-// Ensure uploads dir
-const UPLOAD_DIR = path.resolve("uploads");
+// On Vercel serverless the real filesystem is read-only; use /tmp instead.
+const UPLOAD_DIR = process.env.VERCEL ? "/tmp/uploads" : path.resolve("uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 app.use("/uploads", express.static(UPLOAD_DIR));
 
@@ -377,10 +377,20 @@ app.get("/api/admin/mi/backups/:file/download", requireAuth, (req, res) => {
   res.download(full, safe);
 });
 
-const PORT = Number(process.env.SERVER_PORT || 3001);
-app.listen(PORT, "0.0.0.0", async () => {
-  console.log(`[server] listening on :${PORT}`);
-  try { await ensureDefaultAdmin(); } catch (e) { console.error("admin bootstrap failed", e); }
-  try { await ensureFirstRunBackup(); } catch (e) { console.error("first-run backup failed", e); }
+// Always bootstrap admin accounts (runs on both local and Vercel cold-start)
+ensureDefaultAdmin().catch((e) => console.error("admin bootstrap failed", e));
+
+if (process.env.VERCEL) {
+  // Vercel serverless: skip disk-dependent startup tasks
+  console.log("[server] running as Vercel serverless function");
+} else {
+  // Local / Replit development
+  ensureFirstRunBackup().catch((e) => console.error("first-run backup failed", e));
   startBackupScheduler();
-});
+  const PORT = Number(process.env.SERVER_PORT || 3001);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`[server] listening on :${PORT}`);
+  });
+}
+
+export default app;
