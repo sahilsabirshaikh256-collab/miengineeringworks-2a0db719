@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
       clientPort: 443,
+      protocol: "wss",
     },
     proxy: {
       "/api": "http://localhost:3001",
