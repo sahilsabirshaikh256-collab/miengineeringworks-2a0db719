@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import { Lightbox } from "@/components/GallerySection";
 import { api, type Media } from "@/lib/api-extras";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const GalleryPage = () => {
   const { data, isLoading } = useQuery<Media[]>({ queryKey: ["/api/media"], queryFn: () => api("/api/media") });
@@ -17,7 +17,19 @@ const GalleryPage = () => {
 
   return (
     <PageTransition>
-      <Helmet><title>Photos & Videos | M.I. Engineering Works</title></Helmet>
+      <SEO
+        title="Manufacturing Gallery — Photos & Videos"
+        description="Behind-the-scenes photos and videos from M.I. Engineering Works — our fastener manufacturing facility, finished product shots, and project deliveries. See ASTM A193 Grade B7 stud bolts, hex bolts and threaded rods in production."
+        keywords={[
+          "fastener manufacturing photos",
+          "stud bolt production Mumbai",
+          "M.I. Engineering Works factory",
+          "fastener manufacturing process",
+          "ASTM A193 B7 production",
+          "fastener supplier gallery India",
+        ]}
+        path="/gallery"
+      />
       <Header />
 
       <section className="relative bg-gradient-dark py-20 md:py-28 text-primary-foreground">

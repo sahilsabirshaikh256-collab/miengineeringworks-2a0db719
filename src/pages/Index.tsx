@@ -13,15 +13,28 @@ import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import CustomSections from "@/components/CustomSections";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const Index = () => {
   return (
     <PageTransition>
-      <Helmet>
-        <title>M.I. Engineering Works | ASTM A193 Grade B7 Fasteners Manufacturer & Supplier Mumbai India</title>
-        <meta name="description" content="M.I. Engineering Works — Leading manufacturer & supplier of ASTM A193 Grade B7 stud bolts, hex bolts, threaded rods, anchor bolts & high-tensile fasteners in Mumbai, India. 25+ years experience, 500+ clients. Call +91-9819972301." />
-      </Helmet>
+      <SEO
+        title="M.I. Engineering Works | ASTM A193 Grade B7 Fasteners Manufacturer & Supplier Mumbai India"
+        description="M.I. Engineering Works — Leading manufacturer & supplier of ASTM A193 Grade B7 stud bolts, hex bolts, threaded rods, anchor bolts & high-tensile fasteners in Mumbai, India. 25+ years experience, 500+ clients. Call +91-9819972301."
+        keywords={[
+          "ASTM A193 Grade B7 manufacturer",
+          "stud bolts manufacturer Mumbai",
+          "hex bolts supplier India",
+          "threaded rods manufacturer",
+          "anchor bolts supplier Mumbai",
+          "foundation bolts manufacturer India",
+          "high tensile fasteners Mumbai",
+          "B7 bolts manufacturer",
+          "fasteners manufacturer India",
+          "industrial fasteners supplier",
+        ]}
+        path="/"
+      />
       <div className="min-h-screen">
         <Header />
         <CustomSections position="top" />

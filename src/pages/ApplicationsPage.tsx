@@ -5,7 +5,7 @@ import { api, type Industry } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const ApplicationsPage = () => {
   const { data, isLoading } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
@@ -13,10 +13,23 @@ const ApplicationsPage = () => {
 
   return (
     <PageTransition>
-      <Helmet>
-        <title>Applications & Industries — Global Engineering Solutions | M.I. Engineering Works</title>
-        <meta name="description" content="Precision-engineered fastening solutions designed for the world's most demanding environments. Serving 50+ global industries — from aerospace to oil & gas." />
-      </Helmet>
+      <SEO
+        title="Applications & Industries — Global Engineering Solutions"
+        description="Precision-engineered fastening solutions for the world's most demanding environments. M.I. Engineering Works supplies ASTM A193 Grade B7 fasteners to 50+ industries — oil & gas, aerospace, power, construction, and more — from Mumbai, India."
+        keywords={[
+          "fasteners for oil and gas",
+          "fasteners for aerospace",
+          "fasteners for power plants",
+          "fasteners for construction",
+          "industrial fasteners applications",
+          "ASTM A193 B7 industries",
+          "engineering fasteners Mumbai India",
+          "fasteners supplier for petrochemical",
+          "pressure vessel bolts",
+          "fasteners for automotive industry",
+        ]}
+        path="/applications"
+      />
 
       <Header />
 

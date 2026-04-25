@@ -5,7 +5,7 @@ import { api, type Standard } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const StandardsPage = () => {
   const { data, isLoading } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards") });
@@ -13,10 +13,23 @@ const StandardsPage = () => {
 
   return (
     <PageTransition>
-      <Helmet>
-        <title>Standards Archive — ASTM, DIN, ISO, BS, IS, SAE | M.I. Engineering Works</title>
-        <meta name="description" content="Comprehensive standards reference: ASTM, ANSI/ASME, DIN, ISO, BS, IS, SAE, EN, UNI. Engineering integrity in every fastener we manufacture." />
-      </Helmet>
+      <SEO
+        title="Standards Archive — ASTM, DIN, ISO, BS, IS, SAE"
+        description="M.I. Engineering Works manufactures fasteners to the highest international standards — ASTM A193, ANSI/ASME B16.5, DIN 976, ISO 4014, BS, IS, SAE, EN, UNI. Full material traceability and EN 10204 mill test certificates."
+        keywords={[
+          "ASTM A193 B7 standard",
+          "DIN 976 threaded rods standard",
+          "ISO 4014 hex bolts standard",
+          "ANSI ASME B16.5 stud bolts",
+          "fastener standards India",
+          "BS 1769 bolts standard",
+          "IS 1367 fasteners standard",
+          "SAE J429 bolt grades",
+          "EN 10204 mill test certificate",
+          "international fastener standards Mumbai",
+        ]}
+        path="/standards"
+      />
 
       <Header />
 
