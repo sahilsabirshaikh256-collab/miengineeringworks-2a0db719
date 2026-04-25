@@ -10,6 +10,7 @@ import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertS
 import { z } from "zod";
 import { generateCatalogPdf } from "./catalog-pdf";
 import { sendContactEmail } from "./mailer";
+import { handleChat, createBackup, listBackups, restoreBackup, healthCheck, ensureFirstRunBackup } from "./mi-service";
 
 const app = express();
 app.use(cors());
@@ -294,8 +295,54 @@ async function ensureDefaultAdmin() {
   }
 }
 
+// ───────────── MI Chat (admin self-service: backup, restore, health check) ─────────────
+
+app.post("/api/admin/mi/chat", requireAuth, async (req, res) => {
+  try {
+    const { message, restoreFile, restoreMode } = req.body || {};
+    const r = await handleChat(String(message || ""), { restoreFile, restoreMode });
+    res.json(r);
+  } catch (e: any) {
+    console.error("[mi/chat]", e);
+    res.status(500).json({ kind: "error", reply: `❌ ${e.message || "Internal error"}` });
+  }
+});
+
+app.post("/api/admin/mi/backup", requireAuth, async (req, res) => {
+  try {
+    const r = await createBackup(String(req.body?.label || "manual"));
+    res.json(r);
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/admin/mi/backups", requireAuth, (_req, res) => {
+  res.json(listBackups());
+});
+
+app.post("/api/admin/mi/restore", requireAuth, async (req, res) => {
+  try {
+    const { file, mode } = req.body || {};
+    if (!file) return res.status(400).json({ error: "file is required" });
+    const r = await restoreBackup(String(file), mode === "merge" ? "merge" : "replace");
+    res.json(r);
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.get("/api/admin/mi/health", requireAuth, async (_req, res) => {
+  try { res.json(await healthCheck()); } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// Download a backup file so admin can save a copy locally too
+app.get("/api/admin/mi/backups/:file/download", requireAuth, (req, res) => {
+  const safe = path.basename(String(req.params.file || ""));
+  const full = path.resolve("data/backups", safe);
+  if (!fs.existsSync(full)) return res.status(404).json({ error: "Not found" });
+  res.download(full, safe);
+});
+
 const PORT = Number(process.env.SERVER_PORT || 3001);
 app.listen(PORT, "0.0.0.0", async () => {
   console.log(`[server] listening on :${PORT}`);
   try { await ensureDefaultAdmin(); } catch (e) { console.error("admin bootstrap failed", e); }
+  try { await ensureFirstRunBackup(); } catch (e) { console.error("first-run backup failed", e); }
 });

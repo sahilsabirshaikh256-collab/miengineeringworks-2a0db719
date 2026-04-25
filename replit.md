@@ -67,3 +67,9 @@ The public `GradeChartSection` and `SpecificationsSection` components read via `
 - Made GradeChartSection and SpecificationsSection content-editable via `site_content` keys.
 - Removed `ReviewsSection` from `ProductDetail.tsx`.
 - Improved gallery video lightbox UI (top toolbar, fullscreen, download, ESC handling).
+
+## Recent changes (2026-04 — third batch)
+- **Applications / Use Cases admin** at `/admin/applications` and `/admin/applications/:slug`. Visual cards UI for industries (name + main image upload/preview, slug auto-generated, description). Per-industry use case manager with full CRUD (Title, Description, Image upload+preview). Persists to `industries.applications` jsonb. Reusable `ImagePicker` component exported from `AdminApplications.tsx`.
+- **Dedicated public pages**: `/products`, `/about`, `/contact` now exist as their own routes (wrap `ProductsSection`, `AboutSection`, `ContactSection` with Header/Footer/PageTransition). Header nav switched from anchor scroll to real `<Link>` navigation; About link added.
+- **SEO component** at `src/components/SEO.tsx`: emits unique title/description/keywords, OG/Twitter cards, canonical URL, geo (Mumbai/IN-MH), JSON-LD Organization. Used on Products / About / Contact pages.
+- **MI Chat** at `/admin/mi`: locally-running admin assistant (no external/paid AI). Commands (Hindi+English): `backup`, `restore`, `list backups`, `health` / `fix`, `stats`, `help`. Chat UI shows action chips, backup list cards, health metrics. Backed by `server/mi-service.ts` and 5 endpoints under `/api/admin/mi/*`. Backup files saved to `data/backups/*.json` (committed to git so they survive GitHub→Replit roundtrips). Auto first-run backup created on server boot if none exist.

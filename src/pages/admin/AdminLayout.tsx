@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, Factory, Award, Mail, LogOut, Home, Image, FileText, LayoutGrid, Table2, FileBarChart, BookOpen, Sparkles, Palette, Notebook, Calculator, Layers } from "lucide-react";
+import { LayoutDashboard, Package, Factory, Award, Mail, LogOut, Home, Image, FileText, LayoutGrid, Table2, FileBarChart, BookOpen, Sparkles, Palette, Notebook, Calculator, Layers, Bot } from "lucide-react";
 import { clearToken } from "@/lib/api";
 
 const links = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/mi", label: "MI Chat", icon: Bot },
   { to: "/admin/branding", label: "Branding & Identity", icon: Palette },
   { to: "/admin/animations", label: "Animations", icon: Sparkles },
   { to: "/admin/content", label: "Site Content", icon: FileText },
