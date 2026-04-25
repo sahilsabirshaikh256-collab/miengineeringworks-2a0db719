@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
   Search, Notebook, ChevronRight, Users, Wallet, AlertCircle, IndianRupee,
-  Plus, X, Loader2, Save, Phone, MapPin, Trash2,
+  Plus, X, Loader2, Save, Phone, MapPin, Trash2, FileSpreadsheet, BookOpen, CheckCheck,
 } from "lucide-react";
 import AdminLayout from "./AdminLayout";
 import { api } from "@/lib/api";
@@ -30,6 +30,9 @@ type CustomerSummary = Customer & {
   total: number;
   paid: number;
   pending: number;
+  tallyPending: number;
+  bookPending: number;
+  fullyDone: number;
 };
 
 export default function AdminLedger() {
@@ -53,12 +56,21 @@ export default function AdminLedger() {
     return customers.map((c) => {
       const mine = allEntries.filter((e) => e.customerId === c.id);
       let total = 0, paid = 0;
+      let tallyPending = 0, bookPending = 0, fullyDone = 0;
       for (const e of mine) {
         const due = num(e.amountDue);
         total += due;
-        if (isPaidEntry(e)) paid += due;
+        const isPaid = isPaidEntry(e);
+        if (isPaid) paid += due;
+        if (isPaid && !e.tallyReceiptDone) tallyPending += 1;
+        if (isPaid && !e.bookEntryDone) bookPending += 1;
+        if (isPaid && e.tallyReceiptDone && e.bookEntryDone) fullyDone += 1;
       }
-      return { ...c, entries: mine.length, total, paid, pending: Math.max(0, total - paid) };
+      return {
+        ...c, entries: mine.length, total, paid,
+        pending: Math.max(0, total - paid),
+        tallyPending, bookPending, fullyDone,
+      };
     });
   }, [customers, allEntries]);
 
@@ -75,8 +87,12 @@ export default function AdminLedger() {
 
   const totals = useMemo(() => {
     let total = 0, paid = 0, pending = 0;
-    for (const c of summaries) { total += c.total; paid += c.paid; pending += c.pending; }
-    return { total, paid, pending, count: summaries.length };
+    let tallyPending = 0, bookPending = 0, fullyDone = 0;
+    for (const c of summaries) {
+      total += c.total; paid += c.paid; pending += c.pending;
+      tallyPending += c.tallyPending; bookPending += c.bookPending; fullyDone += c.fullyDone;
+    }
+    return { total, paid, pending, count: summaries.length, tallyPending, bookPending, fullyDone };
   }, [summaries]);
 
   const create = useMutation({
@@ -126,11 +142,18 @@ export default function AdminLedger() {
       </div>
 
       {/* Top totals */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
         <Stat label="Customers" value={String(totals.count)} icon={Users} tone="blue" testid="stat-customers" />
         <Stat label="Total Amount" value={inr(totals.total)} icon={IndianRupee} tone="amber" testid="stat-total" />
         <Stat label="Total Paid" value={inr(totals.paid)} icon={Wallet} tone="green" testid="stat-paid" />
         <Stat label="Total Pending" value={inr(totals.pending)} icon={AlertCircle} tone="red" testid="stat-pending" />
+      </div>
+
+      {/* T / B / Done across all customers */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <Stat label="T — Tally Receipt Pending" value={String(totals.tallyPending)} icon={FileSpreadsheet} tone={totals.tallyPending > 0 ? "red" : "green"} testid="stat-all-tally-pending" />
+        <Stat label="B — Book Entry Pending" value={String(totals.bookPending)} icon={BookOpen} tone={totals.bookPending > 0 ? "red" : "green"} testid="stat-all-book-pending" />
+        <Stat label="Fully Done (Paid + T + B)" value={String(totals.fullyDone)} icon={CheckCheck} tone="green" testid="stat-all-fully-done" />
       </div>
 
       {/* Search */}
@@ -190,6 +213,23 @@ export default function AdminLedger() {
                     <div className="col-span-5 sm:col-span-3 text-right">
                       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Paid</div>
                       <div className="font-bold text-emerald-700 dark:text-emerald-400">{inr(c.paid)}</div>
+                      <div className="mt-1 inline-flex items-center gap-1 flex-wrap justify-end">
+                        {c.tallyPending > 0 && (
+                          <span title={`${c.tallyPending} entries: Tally Receipt pending`} className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                            T<span className="opacity-80">·{c.tallyPending}</span>
+                          </span>
+                        )}
+                        {c.bookPending > 0 && (
+                          <span title={`${c.bookPending} entries: Book entry pending`} className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                            B<span className="opacity-80">·{c.bookPending}</span>
+                          </span>
+                        )}
+                        {c.fullyDone > 0 && c.tallyPending === 0 && c.bookPending === 0 && c.entries > 0 && (
+                          <span title="All entries fully done" className="inline-flex items-center gap-0.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-600 text-white">
+                            <CheckCheck className="w-3 h-3" /> All Done
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="col-span-1 text-right text-muted-foreground">
                       <ChevronRight className="w-5 h-5 ml-auto" />

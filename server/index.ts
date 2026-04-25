@@ -10,7 +10,7 @@ import { insertContactSchema, insertProductSchema, insertIndustrySchema, insertS
 import { z } from "zod";
 import { generateCatalogPdf } from "./catalog-pdf";
 import { sendContactEmail } from "./mailer";
-import { handleChat, createBackup, listBackups, restoreBackup, healthCheck, ensureFirstRunBackup } from "./mi-service";
+import { handleChat, createBackup, createFullBackup, listBackups, restoreBackup, deleteBackup, saveUploadedBackup, healthCheck, ensureFirstRunBackup, startBackupScheduler } from "./mi-service";
 
 const app = express();
 app.use(cors());
@@ -315,6 +315,14 @@ app.post("/api/admin/mi/backup", requireAuth, async (req, res) => {
   } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
+// Full website backup (DB + uploaded files)
+app.post("/api/admin/mi/backup/full", requireAuth, async (req, res) => {
+  try {
+    const r = await createFullBackup(String(req.body?.label || "manual"));
+    res.json(r);
+  } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
 app.get("/api/admin/mi/backups", requireAuth, (_req, res) => {
   res.json(listBackups());
 });
@@ -326,6 +334,35 @@ app.post("/api/admin/mi/restore", requireAuth, async (req, res) => {
     const r = await restoreBackup(String(file), mode === "merge" ? "merge" : "replace");
     res.json(r);
   } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete("/api/admin/mi/backups/:file", requireAuth, (req, res) => {
+  try {
+    const r = deleteBackup(String(req.params.file || ""));
+    res.json(r);
+  } catch (e: any) { res.status(404).json({ error: e.message }); }
+});
+
+// Upload backup file (.json)
+const backupUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 200 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === "application/json" || file.originalname.toLowerCase().endsWith(".json")) cb(null, true);
+    else cb(new Error("Only .json backup files are allowed"));
+  },
+});
+app.post("/api/admin/mi/backups/upload", requireAuth, (req, res) => {
+  backupUpload.single("file")(req, res, (err: any) => {
+    if (err) return res.status(400).json({ error: err.message || "Upload failed" });
+    if (!req.file) return res.status(400).json({ error: "No file" });
+    try {
+      const r = saveUploadedBackup(req.file.originalname, req.file.buffer);
+      res.json(r);
+    } catch (e: any) {
+      res.status(400).json({ error: e.message });
+    }
+  });
 });
 
 app.get("/api/admin/mi/health", requireAuth, async (_req, res) => {
@@ -345,4 +382,5 @@ app.listen(PORT, "0.0.0.0", async () => {
   console.log(`[server] listening on :${PORT}`);
   try { await ensureDefaultAdmin(); } catch (e) { console.error("admin bootstrap failed", e); }
   try { await ensureFirstRunBackup(); } catch (e) { console.error("first-run backup failed", e); }
+  startBackupScheduler();
 });

@@ -73,3 +73,16 @@ The public `GradeChartSection` and `SpecificationsSection` components read via `
 - **Dedicated public pages**: `/products`, `/about`, `/contact` now exist as their own routes (wrap `ProductsSection`, `AboutSection`, `ContactSection` with Header/Footer/PageTransition). Header nav switched from anchor scroll to real `<Link>` navigation; About link added.
 - **SEO component** at `src/components/SEO.tsx`: emits unique title/description/keywords, OG/Twitter cards, canonical URL, geo (Mumbai/IN-MH), JSON-LD Organization. Used on Products / About / Contact pages.
 - **MI Chat** at `/admin/mi`: locally-running admin assistant (no external/paid AI). Commands (Hindi+English): `backup`, `restore`, `list backups`, `health` / `fix`, `stats`, `help`. Chat UI shows action chips, backup list cards, health metrics. Backed by `server/mi-service.ts` and 5 endpoints under `/api/admin/mi/*`. Backup files saved to `data/backups/*.json` (committed to git so they survive GitHub→Replit roundtrips). Auto first-run backup created on server boot if none exist.
+
+## Recent changes (2026-04 — fourth batch)
+- **Full website backup system** at `/admin/backups` (sidebar: "Backups"). Two backup kinds:
+  - **DB** — `.json` of all tables only (small, fast).
+  - **FULL** — `.json` containing all tables PLUS every file in `/uploads` inline as base64. Single-file portability; no archiver dep.
+  Per row: Restore (replace), Download, Delete. Toolbar: Create FULL Backup Now, Quick DB Backup, Upload Backup (.json). Stats cards: total backups, full backups, storage used, last auto backup.
+- **Daily auto-backup**: `startBackupScheduler()` runs on boot + every 6h, fires once per 24h, creates a FULL backup labelled `auto-daily`, prunes to last 7 auto-daily files. First-run backup also upgraded to FULL.
+- **New backend endpoints** under `/api/admin/mi/*`: `POST /backup/full`, `DELETE /backups/:file`, `POST /backups/upload` (multer memoryStorage, 200 MB, `.json` only with shape validation). Restore now also writes any `files` field back into `/uploads`.
+- **Backup file format v2**: `{version:2, kind:"db"|"full", createdAt, tables, counts, files?:{name:base64}}`. Backward-compatible with v1.
+- **Ledger T (Tally Receipt) / B (Book Entry) status**: added `tallyReceiptDone` + `bookEntryDone` boolean columns to `ledger_entries`. Per-entry table now has T and B toggle buttons; row turns deeper green when payment + T + B are all done ("Fully Done"). Footer legend explains T/B.
+- **Customer ledger detail page**: 3-card summary row added (T-pending, B-pending, Fully-Done counts).
+- **Customer dashboard `/admin/ledger`**: top-level T-pending / B-pending / Fully-Done totals; each customer row now shows small T·N / B·N pending pills, or an "All Done" pill when everything is reconciled.
+- **SEO cleanup**: removed `ASTM A193 Grade B7` from per-product JSON-LD `name` (uses `product.name` only) and from `/products` SEO description. Each product now keywords purely on its own product name.

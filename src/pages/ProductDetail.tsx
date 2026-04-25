@@ -37,7 +37,7 @@ const ProductDetail = () => {
       script.textContent = JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Product",
-        name: `${product.name} - ASTM A193 Grade B7`,
+        name: product.name,
         description: product.description,
         image: product.img,
         sku: product.slug,

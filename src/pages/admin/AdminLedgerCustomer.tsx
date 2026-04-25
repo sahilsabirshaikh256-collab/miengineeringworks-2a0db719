@@ -3,9 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import {
-  ArrowLeft, Plus, Trash2, Loader2, Save, X, Check,
+  ArrowLeft, Plus, Trash2, Loader2, Save, X, Check, CheckCheck,
   Receipt, IndianRupee, Wallet, AlertCircle, ListChecks, RotateCcw, Pencil,
-  Phone, MapPin,
+  Phone, MapPin, BookOpen, FileSpreadsheet,
 } from "lucide-react";
 import AdminLayout from "./AdminLayout";
 import { api } from "@/lib/api";
@@ -27,6 +27,8 @@ const isPaidEntry = (e: LedgerEntry) => {
   const recv = num(e.amountReceived);
   return due > 0 && recv >= due;
 };
+
+const isFullyDone = (e: LedgerEntry) => isPaidEntry(e) && e.tallyReceiptDone && e.bookEntryDone;
 
 type FormState = {
   invoiceDate: string;
@@ -69,12 +71,19 @@ export default function AdminLedgerCustomer() {
 
   const totals = useMemo(() => {
     let total = 0, paid = 0;
+    let tallyPending = 0, bookPending = 0, fullyDone = 0;
     for (const e of entries) {
       const due = num(e.amountDue);
       total += due;
       if (isPaidEntry(e)) paid += due;
+      if (isPaidEntry(e) && !e.tallyReceiptDone) tallyPending += 1;
+      if (isPaidEntry(e) && !e.bookEntryDone) bookPending += 1;
+      if (isFullyDone(e)) fullyDone += 1;
     }
-    return { total, paid, pending: Math.max(0, total - paid), count: entries.length };
+    return {
+      total, paid, pending: Math.max(0, total - paid), count: entries.length,
+      tallyPending, bookPending, fullyDone,
+    };
   }, [entries]);
 
   const create = useMutation({
@@ -134,6 +143,14 @@ export default function AdminLedgerCustomer() {
       : { amountReceived: e.amountDue || "0", paymentDate: today() };
     update.mutate({ id: e.id, data });
     toast({ title: paid ? "Marked as Pending" : "Marked as Paid" });
+  };
+
+  const toggleTally = (e: LedgerEntry) => {
+    update.mutate({ id: e.id, data: { tallyReceiptDone: !e.tallyReceiptDone } });
+  };
+
+  const toggleBook = (e: LedgerEntry) => {
+    update.mutate({ id: e.id, data: { bookEntryDone: !e.bookEntryDone } });
   };
 
   const startEdit = (e: LedgerEntry) => {
@@ -209,11 +226,18 @@ export default function AdminLedgerCustomer() {
       </div>
 
       {/* Totals */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
         <Stat label="Total Amount" value={inr(totals.total)} icon={IndianRupee} tone="amber" testid="stat-total-amount" />
         <Stat label="Total Paid" value={inr(totals.paid)} icon={Wallet} tone="green" testid="stat-total-paid" />
         <Stat label="Total Pending" value={inr(totals.pending)} icon={AlertCircle} tone={totals.pending > 0 ? "red" : "green"} testid="stat-total-pending" />
         <Stat label="Entries" value={String(totals.count)} icon={ListChecks} tone="blue" testid="stat-entry-count" />
+      </div>
+
+      {/* T / B / Done summary */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
+        <Stat label="T — Tally Receipt Pending" value={String(totals.tallyPending)} icon={FileSpreadsheet} tone={totals.tallyPending > 0 ? "red" : "green"} testid="stat-tally-pending" />
+        <Stat label="B — Book Entry Pending" value={String(totals.bookPending)} icon={BookOpen} tone={totals.bookPending > 0 ? "red" : "green"} testid="stat-book-pending" />
+        <Stat label="Fully Done (Paid + T + B)" value={String(totals.fullyDone)} icon={CheckCheck} tone="green" testid="stat-fully-done" />
       </div>
 
       {/* Entries */}
@@ -225,52 +249,82 @@ export default function AdminLedgerCustomer() {
                 <Th className="w-28">Date</Th>
                 <Th>Invoice No.</Th>
                 <Th className="text-right">Amount (₹)</Th>
-                <Th className="w-32">Status</Th>
-                <Th className="text-right w-40">Actions</Th>
+                <Th className="w-44">Payment Status</Th>
+                <Th className="w-24 text-center" title="Tally Receipt entered">T</Th>
+                <Th className="w-24 text-center" title="Book entry done">B</Th>
+                <Th className="text-right w-32">Actions</Th>
               </tr>
             </thead>
             <tbody>
               {isLoading && (
-                <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Loading…</td></tr>
+                <tr><td colSpan={7} className="p-6 text-center text-muted-foreground">Loading…</td></tr>
               )}
               {!isLoading && entries.length === 0 && (
-                <tr><td colSpan={5} className="p-10 text-center text-muted-foreground">
+                <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">
                   <Receipt className="w-10 h-10 mx-auto mb-2 opacity-50" />
                   No entries yet — click <strong>New Entry</strong> to add one.
                 </td></tr>
               )}
               {entries.map((e) => {
                 const paid = isPaidEntry(e);
+                const fully = isFullyDone(e);
                 return (
                   <tr
                     key={e.id}
                     data-testid={`row-entry-${e.id}`}
-                    className={`border-t border-border transition ${paid ? "bg-emerald-500/10 hover:bg-emerald-500/15" : "hover:bg-secondary/30"}`}
+                    className={`border-t border-border transition ${fully ? "bg-emerald-500/15 hover:bg-emerald-500/25" : paid ? "bg-emerald-500/5 hover:bg-emerald-500/10" : "hover:bg-secondary/30"}`}
                   >
                     <Td className="text-foreground/90">{e.invoiceDate || "—"}</Td>
                     <Td className="font-medium">{e.invoiceNo || "—"}</Td>
                     <Td className="text-right font-bold">{inr(num(e.amountDue))}</Td>
                     <Td>
-                      {paid ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wide">
-                          <Check className="w-3.5 h-3.5" /> Paid
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 text-xs font-bold uppercase tracking-wide">
-                          ● Pending
-                        </span>
-                      )}
-                    </Td>
-                    <Td className="text-right whitespace-nowrap">
                       <button
                         onClick={() => togglePaid(e)}
                         disabled={update.isPending}
                         data-testid={`button-toggle-paid-${e.id}`}
                         title={paid ? "Mark as pending" : "Mark as paid"}
-                        className={`p-1.5 rounded mr-1 ${paid ? "text-emerald-600 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-emerald-500/10 hover:text-emerald-600"}`}
+                        className={`inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide px-2.5 py-1.5 rounded ${
+                          fully ? "bg-emerald-600 text-white" :
+                          paid ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/30" :
+                          "bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500/30"
+                        }`}
                       >
-                        {paid ? <RotateCcw className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                        {fully ? (<><CheckCheck className="w-3.5 h-3.5" /> Fully Done</>)
+                          : paid ? (<><Check className="w-3.5 h-3.5" /> Paid</>)
+                          : (<>● Pending</>)}
                       </button>
+                    </Td>
+                    <Td className="text-center">
+                      <button
+                        onClick={() => toggleTally(e)}
+                        disabled={update.isPending}
+                        data-testid={`button-toggle-tally-${e.id}`}
+                        title={e.tallyReceiptDone ? "Tally receipt done — click to undo" : "Mark Tally receipt done"}
+                        className={`inline-flex items-center justify-center w-9 h-9 rounded-md font-bold text-sm transition ${
+                          e.tallyReceiptDone
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                            : "border-2 border-dashed border-amber-500/60 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                        }`}
+                      >
+                        {e.tallyReceiptDone ? <Check className="w-4 h-4" /> : "T"}
+                      </button>
+                    </Td>
+                    <Td className="text-center">
+                      <button
+                        onClick={() => toggleBook(e)}
+                        disabled={update.isPending}
+                        data-testid={`button-toggle-book-${e.id}`}
+                        title={e.bookEntryDone ? "Book entry done — click to undo" : "Mark Book entry done"}
+                        className={`inline-flex items-center justify-center w-9 h-9 rounded-md font-bold text-sm transition ${
+                          e.bookEntryDone
+                            ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                            : "border-2 border-dashed border-amber-500/60 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+                        }`}
+                      >
+                        {e.bookEntryDone ? <Check className="w-4 h-4" /> : "B"}
+                      </button>
+                    </Td>
+                    <Td className="text-right whitespace-nowrap">
                       <button
                         onClick={() => startEdit(e)}
                         data-testid={`button-edit-entry-${e.id}`}
@@ -291,6 +345,9 @@ export default function AdminLedgerCustomer() {
               })}
             </tbody>
           </table>
+        </div>
+        <div className="px-4 py-2 border-t border-border bg-secondary/30 text-[11px] text-muted-foreground">
+          <strong>T</strong> = Tally Receipt entered &nbsp; · &nbsp; <strong>B</strong> = Book entry done &nbsp; · &nbsp; <strong className="text-emerald-700 dark:text-emerald-400">Fully Done</strong> = Payment received + T + B
         </div>
       </div>
 

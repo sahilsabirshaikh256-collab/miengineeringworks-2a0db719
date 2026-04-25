@@ -7,7 +7,9 @@ import {
 } from "../shared/schema";
 
 const BACKUP_DIR = path.resolve("data/backups");
+const UPLOAD_DIR = path.resolve("uploads");
 if (!fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const TABLES = {
   products, industries, standards, media, siteContent, pageSections,
@@ -17,13 +19,15 @@ const TABLES = {
 type TableKey = keyof typeof TABLES;
 
 export type Snapshot = {
-  version: 1;
+  version: number;
   createdAt: string;
+  kind: "db" | "full";
   tables: Record<TableKey, any[]>;
   counts: Record<TableKey, number>;
+  files?: Record<string, string>; // filename -> base64
 };
 
-export async function dumpAllTables(): Promise<Snapshot> {
+export async function dumpAllTables() {
   const tables: any = {};
   const counts: any = {};
   for (const [name, table] of Object.entries(TABLES)) {
@@ -31,7 +35,7 @@ export async function dumpAllTables(): Promise<Snapshot> {
     tables[name] = rows;
     counts[name] = rows.length;
   }
-  return { version: 1, createdAt: new Date().toISOString(), tables, counts };
+  return { tables, counts };
 }
 
 function timestampSlug() {
@@ -40,13 +44,69 @@ function timestampSlug() {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
 }
 
+/** DB-only backup (small, fast) */
 export async function createBackup(label = "manual") {
-  const snap = await dumpAllTables();
+  const dump = await dumpAllTables();
+  const snap: Snapshot = {
+    version: 2,
+    kind: "db",
+    createdAt: new Date().toISOString(),
+    tables: dump.tables,
+    counts: dump.counts,
+  };
   const safe = label.replace(/[^a-z0-9-_]/gi, "-").slice(0, 32);
   const file = `backup-${timestampSlug()}-${safe}.json`;
   const full = path.join(BACKUP_DIR, file);
   fs.writeFileSync(full, JSON.stringify(snap, null, 2), "utf8");
-  return { file, path: full, counts: snap.counts, totalRows: Object.values(snap.counts).reduce((a, b) => a + b, 0) };
+  return {
+    file, path: full, kind: "db" as const,
+    counts: snap.counts,
+    totalRows: Object.values(snap.counts).reduce((a, b) => a + b, 0),
+    fileCount: 0,
+  };
+}
+
+/** Full backup — DB + every file in /uploads (base64 inline). Single .json file. */
+export async function createFullBackup(label = "full") {
+  const dump = await dumpAllTables();
+
+  const files: Record<string, string> = {};
+  let fileCount = 0;
+  if (fs.existsSync(UPLOAD_DIR)) {
+    for (const name of fs.readdirSync(UPLOAD_DIR)) {
+      const p = path.join(UPLOAD_DIR, name);
+      try {
+        const stat = fs.statSync(p);
+        if (!stat.isFile()) continue;
+        if (stat.size > 50 * 1024 * 1024) continue; // skip files > 50 MB
+        const buf = fs.readFileSync(p);
+        files[name] = buf.toString("base64");
+        fileCount++;
+      } catch {}
+    }
+  }
+
+  const snap: Snapshot = {
+    version: 2,
+    kind: "full",
+    createdAt: new Date().toISOString(),
+    tables: dump.tables,
+    counts: dump.counts,
+    files,
+  };
+
+  const safe = label.replace(/[^a-z0-9-_]/gi, "-").slice(0, 32);
+  const file = `fullbackup-${timestampSlug()}-${safe}.json`;
+  const full = path.join(BACKUP_DIR, file);
+  fs.writeFileSync(full, JSON.stringify(snap), "utf8"); // no pretty (keep size smaller)
+  const sizeBytes = fs.statSync(full).size;
+  return {
+    file, path: full, kind: "full" as const,
+    counts: snap.counts,
+    totalRows: Object.values(snap.counts).reduce((a, b) => a + b, 0),
+    fileCount,
+    sizeBytes,
+  };
 }
 
 export function listBackups() {
@@ -58,34 +118,42 @@ export function listBackups() {
       const s = fs.statSync(full);
       let counts: Record<string, number> = {};
       let createdAt: string | undefined;
+      let kind: "db" | "full" = "db";
+      let fileCount = 0;
       try {
-        const j = JSON.parse(fs.readFileSync(full, "utf8"));
+        const raw = fs.readFileSync(full, "utf8");
+        const j = JSON.parse(raw);
         counts = j.counts || {};
         createdAt = j.createdAt;
+        kind = j.kind === "full" ? "full" : "db";
+        fileCount = j.files ? Object.keys(j.files).length : 0;
       } catch {}
       return {
         file: f,
         size: s.size,
         modified: s.mtime.toISOString(),
         createdAt,
+        kind,
         totalRows: Object.values(counts).reduce((a, b) => a + b, 0),
         counts,
+        fileCount,
       };
     })
-    .sort((a, b) => b.modified.localeCompare(a.modified));
+    .sort((a, b) => (b.createdAt || b.modified).localeCompare(a.createdAt || a.modified));
 }
 
 /**
  * Restore from a snapshot file.
  * mode "replace" — clear table then insert backed-up rows
  * mode "merge"   — only insert rows whose id is not already present
+ * Full backups also write files back into /uploads.
  */
 export async function restoreBackup(file: string, mode: "replace" | "merge" = "replace") {
   const safe = path.basename(file);
   const full = path.join(BACKUP_DIR, safe);
   if (!fs.existsSync(full)) throw new Error(`Backup file not found: ${safe}`);
   const snap: Snapshot = JSON.parse(fs.readFileSync(full, "utf8"));
-  if (snap.version !== 1) throw new Error("Unsupported backup version");
+  if (snap.version !== 1 && snap.version !== 2) throw new Error("Unsupported backup version");
 
   const restored: Record<string, number> = {};
   const skipped: Record<string, number> = {};
@@ -96,16 +164,13 @@ export async function restoreBackup(file: string, mode: "replace" | "merge" = "r
 
     if (mode === "replace") {
       await db.delete(table as any);
-      // Re-insert all rows preserving ids/timestamps
       const cleaned = rows.map((r) => normalizeRow(r));
-      // Insert in chunks to avoid huge param arrays
       for (const chunk of chunkArray(cleaned, 100)) {
         await db.insert(table as any).values(chunk);
       }
       restored[name] = rows.length;
       skipped[name] = 0;
     } else {
-      // merge: skip rows whose id already exists
       const existing = await db.select().from(table as any);
       const existingIds = new Set(existing.map((e: any) => e.id));
       const toInsert = rows.filter((r) => !existingIds.has(r.id)).map(normalizeRow);
@@ -118,11 +183,60 @@ export async function restoreBackup(file: string, mode: "replace" | "merge" = "r
       skipped[name] = rows.length - toInsert.length;
     }
   }
-  return { file: safe, mode, restored, skipped };
+
+  // Restore files (full backups)
+  let filesRestored = 0;
+  if (snap.files && typeof snap.files === "object") {
+    for (const [name, b64] of Object.entries(snap.files)) {
+      try {
+        const safeName = path.basename(name);
+        const out = path.join(UPLOAD_DIR, safeName);
+        fs.writeFileSync(out, Buffer.from(String(b64), "base64"));
+        filesRestored++;
+      } catch (e) {
+        console.warn("[mi] restore file failed:", name, (e as Error).message);
+      }
+    }
+  }
+
+  return { file: safe, mode, kind: snap.kind || "db", restored, skipped, filesRestored };
+}
+
+export function deleteBackup(file: string) {
+  const safe = path.basename(file);
+  const full = path.join(BACKUP_DIR, safe);
+  if (!fs.existsSync(full)) throw new Error(`Backup file not found: ${safe}`);
+  fs.unlinkSync(full);
+  return { file: safe, deleted: true };
+}
+
+/** Save uploaded backup file into /data/backups so it shows up in the list */
+export function saveUploadedBackup(originalName: string, buf: Buffer) {
+  // Validate JSON shape
+  let snap: any;
+  try { snap = JSON.parse(buf.toString("utf8")); }
+  catch { throw new Error("Uploaded file is not valid JSON"); }
+  if (!snap || (snap.version !== 1 && snap.version !== 2) || !snap.tables) {
+    throw new Error("Uploaded file is not a valid MI backup (missing version/tables)");
+  }
+  const baseRaw = path.basename(originalName).replace(/[^a-z0-9.\-_]/gi, "_");
+  const base = baseRaw.toLowerCase().endsWith(".json") ? baseRaw : `${baseRaw}.json`;
+  const finalName = base.startsWith("backup-") || base.startsWith("fullbackup-")
+    ? base
+    : `uploaded-${timestampSlug()}-${base}`;
+  const out = path.join(BACKUP_DIR, finalName);
+  fs.writeFileSync(out, buf);
+  const counts = snap.counts || {};
+  return {
+    file: finalName,
+    kind: snap.kind === "full" ? "full" : "db",
+    totalRows: Object.values(counts).reduce((a: number, b: any) => a + Number(b || 0), 0),
+    fileCount: snap.files ? Object.keys(snap.files).length : 0,
+    sizeBytes: buf.length,
+  };
 }
 
 function normalizeRow(r: any) {
-  // Convert ISO date strings back to Date objects so drizzle can insert into timestamp columns
   const out: any = {};
   for (const [k, v] of Object.entries(r)) {
     if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v)) {
@@ -149,9 +263,7 @@ export async function healthCheck() {
     counts[name] = rows.length;
   }
 
-  // Check uploaded files referenced from DB but missing on disk
-  const uploadDir = path.resolve("uploads");
-  const onDisk = fs.existsSync(uploadDir) ? new Set(fs.readdirSync(uploadDir)) : new Set<string>();
+  const onDisk = fs.existsSync(UPLOAD_DIR) ? new Set(fs.readdirSync(UPLOAD_DIR)) : new Set<string>();
 
   const refs: { table: string; row: number; field: string; url: string }[] = [];
   const collectImageRefs = (rows: any[], table: string, fields: string[]) => {
@@ -179,7 +291,6 @@ export async function healthCheck() {
       refs.push({ table: "siteContent", row: c.id, field: c.key, url: c.value });
     }
   }
-  // Also nested industry use case images
   for (const ind of industriesRows) {
     const apps: any[] = (ind as any).applications || [];
     apps.forEach((a, i) => {
@@ -194,7 +305,6 @@ export async function healthCheck() {
     return !onDisk.has(filename);
   });
 
-  // Issues summary
   const issues: { severity: "warn" | "error"; message: string }[] = [];
   if (counts.products === 0) issues.push({ severity: "warn", message: "No products in database" });
   if (counts.industries === 0) issues.push({ severity: "warn", message: "No industries in database" });
@@ -220,18 +330,54 @@ export async function healthCheck() {
   };
 }
 
-/* ---------- AUTO BOOT BACKUP ---------- */
+/* ---------- AUTO BACKUPS (boot + daily) ---------- */
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function ensureFirstRunBackup() {
   try {
     if (listBackups().length > 0) return;
     const dump = await dumpAllTables();
     if (dump.counts.products === 0 && dump.counts.industries === 0 && dump.counts.standards === 0) return;
-    const r = await createBackup("auto-first-run");
-    console.log(`[mi] auto first-run backup created: ${r.file} (${r.totalRows} rows)`);
+    const r = await createFullBackup("auto-first-run");
+    console.log(`[mi] auto first-run FULL backup created: ${r.file} (${r.totalRows} rows, ${r.fileCount} files)`);
   } catch (e) {
     console.warn("[mi] first-run backup skipped:", (e as Error).message);
   }
+}
+
+/** Run a daily auto full-backup. Keep last 7 auto backups; older ones are pruned. */
+export async function runDailyBackupIfDue() {
+  try {
+    const all = listBackups();
+    const autoOnes = all.filter((b) => /-auto-daily/.test(b.file));
+    const newest = autoOnes[0];
+    if (newest) {
+      const last = new Date(newest.createdAt || newest.modified).getTime();
+      if (Date.now() - last < ONE_DAY_MS) return null; // not due yet
+    }
+    const r = await createFullBackup("auto-daily");
+    console.log(`[mi] daily auto FULL backup created: ${r.file}`);
+
+    // Prune auto-daily backups beyond 7
+    const refreshed = listBackups().filter((b) => /-auto-daily/.test(b.file));
+    const toDelete = refreshed.slice(7);
+    for (const old of toDelete) {
+      try { fs.unlinkSync(path.join(BACKUP_DIR, old.file)); console.log(`[mi] pruned old daily backup: ${old.file}`); }
+      catch {}
+    }
+    return r;
+  } catch (e) {
+    console.warn("[mi] daily auto backup failed:", (e as Error).message);
+    return null;
+  }
+}
+
+export function startBackupScheduler() {
+  // run once shortly after boot, then every 6 hours (each call is a no-op if not due)
+  setTimeout(() => { runDailyBackupIfDue(); }, 60 * 1000);
+  setInterval(() => { runDailyBackupIfDue(); }, 6 * 60 * 60 * 1000);
+  console.log("[mi] daily auto-backup scheduler started (checks every 6h, fires once per 24h)");
 }
 
 /* ---------- CHAT INTENT PARSER ---------- */
@@ -245,12 +391,15 @@ export type ChatResponse = {
 
 const HELP = `Main MI Chat hoon. Aap mujhe yeh seedhi-saadhi commands de sakte ho:
 
-• "backup" — abhi ke saare data ka backup banao (taaki kabhi gayab ho jaye to wapas mil jaye)
+• "backup" — abhi ke saare data + photos ka FULL backup banao
+• "db backup" — sirf database ka backup (chhota, jaldi)
 • "restore" — purane backup se data wapas le aao
 • "list backups" — saare available backups dikhao
 • "health" / "fix bug" — site check karo, kya broken hai bata do
 • "stats" — kitne products, industries, standards hain dikhao
 • "help" — yeh menu firse dikhao
+
+Tip: Detailed backup management ke liye sidebar me "Backups" page kholo — wahan upload/download/delete sab hai.
 
 English ya Hindi dono samjhta hoon.`;
 
@@ -259,7 +408,8 @@ function detectIntent(raw: string): string {
   if (!m) return "unknown";
   if (/^(help|menu|commands?|kya kar sakte|kya kr sakte|kaise|how)/.test(m)) return "help";
   if (/list.*(backup|snapshot)|(backup|snapshot).*list|sare backup|saare backup|show backup|dikhao backup/.test(m)) return "list-backups";
-  if (/^backup$|backup banao|backup karo|save backup|create backup|snapshot|backup le|take backup/.test(m)) return "backup";
+  if (/^(db|database|small|chhota|chota)\s*backup|backup.*db|backup.*database/.test(m)) return "db-backup";
+  if (/^backup$|^full ?backup$|backup banao|backup karo|save backup|create backup|snapshot|backup le|take backup|pura backup/.test(m)) return "full-backup";
   if (/restore|wapas|recover|gayab|missing data|laoo|laao|undo|rollback/.test(m)) return "restore";
   if (/health|status|bug|error|broken|fix|kya issue|kya problem|theek|sahi hai|check karo/.test(m)) return "health";
   if (/stats|count|kitne|total|total kitne/.test(m)) return "stats";
@@ -269,14 +419,13 @@ function detectIntent(raw: string): string {
 export async function handleChat(rawMessage: string, opts?: { restoreFile?: string; restoreMode?: "replace" | "merge" }): Promise<ChatResponse> {
   const message = (rawMessage || "").trim();
 
-  // explicit restore action with file
   if (opts?.restoreFile) {
     try {
       const r = await restoreBackup(opts.restoreFile, opts.restoreMode || "replace");
       const total = Object.values(r.restored).reduce((a, b) => a + b, 0);
       return {
         kind: "ok",
-        reply: `✅ Restore complete from "${r.file}". Total ${total} rows wapas aaye (mode: ${r.mode}).`,
+        reply: `✅ Restore complete from "${r.file}". Total ${total} rows wapas aaye${r.filesRestored ? ` aur ${r.filesRestored} photos/files bhi wapas` : ""} (mode: ${r.mode}).`,
         data: r,
       };
     } catch (e: any) {
@@ -288,13 +437,22 @@ export async function handleChat(rawMessage: string, opts?: { restoreFile?: stri
 
   if (intent === "help") return { kind: "help", reply: HELP };
 
-  if (intent === "backup") {
+  if (intent === "full-backup") {
+    const r = await createFullBackup("chat");
+    return {
+      kind: "ok",
+      reply: `✅ FULL Backup ban gaya: ${r.file}\n📦 ${r.totalRows} rows + 🖼️ ${r.fileCount} photos save hue.\n\nSize: ${(r.sizeBytes / 1024 / 1024).toFixed(2)} MB. Project ke andar data/backups/ folder me.`,
+      data: r,
+      actions: [{ label: "Open Backups page", command: "list backups" }],
+    };
+  }
+
+  if (intent === "db-backup") {
     const r = await createBackup("chat");
     return {
       kind: "ok",
-      reply: `✅ Backup ban gaya: ${r.file}\n📦 ${r.totalRows} rows save hue.\n\nYeh file project ke andar data/backups/ folder me hai. Jab aap GitHub pe push karoge, yeh saath jayegi — aur Replit me wapas import karoge to data wapas mil jayega.`,
+      reply: `✅ DB Backup ban gaya: ${r.file}\n📦 ${r.totalRows} rows save hue (sirf database, photos nahi).`,
       data: r,
-      actions: [{ label: "List all backups", command: "list backups" }],
     };
   }
 
@@ -339,7 +497,6 @@ export async function handleChat(rawMessage: string, opts?: { restoreFile?: stri
     return { kind: "stats", reply: `📊 Database stats:\n\n${lines}`, data: dump.counts };
   }
 
-  // unknown
   return {
     kind: "text",
     reply: `Maaf kijiye, "${message}" samjh nahi aaya.\n\n${HELP}`,

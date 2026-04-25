@@ -9,7 +9,7 @@ export default function ProductsPage() {
     <PageTransition>
       <SEO
         title="Industrial Fasteners — Stud Bolts, Hex Bolts, Anchor Bolts & More"
-        description="Browse our complete range of industrial fasteners — ASTM A193 Grade B7 stud bolts, hex bolts, anchor bolts, foundation bolts, U-bolts, J-bolts and threaded rods. Manufactured in MS, SS, Brass and Aluminium by M.I. Engineering Works, Mumbai."
+        description="Browse our complete range of industrial fasteners — stud bolts, hex bolts, anchor bolts, foundation bolts, U-bolts, J-bolts and threaded rods. Manufactured in MS, SS, Brass and Aluminium by M.I. Engineering Works, Mumbai."
         keywords={[
           "industrial fasteners catalog",
           "stud bolts Mumbai",

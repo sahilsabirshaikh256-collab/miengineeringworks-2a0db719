@@ -147,6 +147,8 @@ export const ledgerEntries = pgTable("ledger_entries", {
   amountReceived: text("amount_received").notNull().default("0"),
   receiptNo: text("receipt_no").notNull().default(""),
   notes: text("notes").notNull().default(""),
+  tallyReceiptDone: boolean("tally_receipt_done").notNull().default(false),
+  bookEntryDone: boolean("book_entry_done").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -160,6 +162,8 @@ export const insertLedgerSchema = z.object({
   amountReceived: z.string().optional().default("0"),
   receiptNo: z.string().optional().default(""),
   notes: z.string().optional().default(""),
+  tallyReceiptDone: z.boolean().optional().default(false),
+  bookEntryDone: z.boolean().optional().default(false),
 });
 export type LedgerEntry = typeof ledgerEntries.$inferSelect;
 export type InsertLedger = z.infer<typeof insertLedgerSchema>;
