@@ -20,6 +20,9 @@ if (!databaseUrl) {
 
 export const pool = new Pool({
   connectionString: databaseUrl || "postgresql://none:none@127.0.0.1:5432/none",
+  ssl: databaseUrl ? {
+    rejectUnauthorized: false,
+  } : false,
   // Keep timeouts short on serverless — Vercel functions timeout at 10s by default.
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 8000,
