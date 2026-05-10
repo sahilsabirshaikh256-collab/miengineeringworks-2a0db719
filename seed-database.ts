@@ -26,9 +26,9 @@ async function seedDatabase() {
           standard.description,
           standard.image,
           standard.scope,
-          JSON.stringify(standard.applications),
-          JSON.stringify(standard.materials),
-          JSON.stringify(standard.examples)
+          standard.applications,
+          standard.materials,
+          standard.examples
         ]
       );
     }
@@ -38,10 +38,10 @@ async function seedDatabase() {
     console.log("[v0] 🏭 Seeding Industries...");
     for (const industry of industriesSeed) {
       await pool.query(
-        `INSERT INTO industries (slug, name, description, "heroDescription", image, grades, "keyRequirements")
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO industries (slug, name, description, hero_description, image, grades, applications, key_requirements)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          ON CONFLICT (slug) DO UPDATE SET
-         name = $2, description = $3, "heroDescription" = $4, image = $5, grades = $6, "keyRequirements" = $7`,
+         name = $2, description = $3, hero_description = $4, image = $5, grades = $6, applications = $7, key_requirements = $8`,
         [
           industry.slug,
           industry.name,
@@ -49,7 +49,8 @@ async function seedDatabase() {
           industry.heroDescription,
           industry.image,
           JSON.stringify(industry.grades),
-          JSON.stringify(industry.keyRequirements)
+          JSON.stringify(industry.applications),
+          industry.keyRequirements
         ]
       );
     }
@@ -59,10 +60,10 @@ async function seedDatabase() {
     console.log("[v0] 📦 Seeding Categories...");
     for (const category of categoriesSeed) {
       await pool.query(
-        `INSERT INTO categories (slug, name, description, image, "sortOrder")
+        `INSERT INTO categories (slug, name, description, image, sort_order)
          VALUES ($1, $2, $3, $4, $5)
          ON CONFLICT (slug) DO UPDATE SET
-         name = $2, description = $3, image = $4, "sortOrder" = $5`,
+         name = $2, description = $3, image = $4, sort_order = $5`,
         [
           category.slug,
           category.name,
@@ -78,29 +79,19 @@ async function seedDatabase() {
     console.log("[v0] 🔧 Seeding Products...");
     let productsSeeded = 0;
     for (const product of productsSeed) {
-      const categoryId = await pool.query(
-        `SELECT id FROM categories WHERE slug = $1`,
-        [product.category.toLowerCase()]
-      );
-      
-      if (categoryId.rows.length === 0) {
-        console.warn(`[v0] ⚠ Category not found for product: ${product.name}`);
-        continue;
-      }
-      
       await pool.query(
         `INSERT INTO products (
-          slug, name, "categoryId", image, standard, description, sizes, threads, length, 
+          slug, name, category, image, standard, description, sizes, threads, length, 
           material, finish, grades, applications, dimensions
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          ON CONFLICT (slug) DO UPDATE SET
-         name = $2, description = $6, image = $4, standard = $5, sizes = $7, 
+         name = $2, category = $3, description = $6, image = $4, standard = $5, sizes = $7, 
          threads = $8, length = $9, material = $10, finish = $11, grades = $12, 
          applications = $13, dimensions = $14`,
         [
           product.slug,
           product.name,
-          categoryId.rows[0].id,
+          product.category,
           product.image,
           product.standard,
           product.description,
@@ -108,9 +99,9 @@ async function seedDatabase() {
           product.threads,
           product.length,
           product.material,
-          JSON.stringify(product.finish),
-          JSON.stringify(product.grades),
-          JSON.stringify(product.applications),
+          product.finish,
+          product.grades,
+          product.applications,
           JSON.stringify(product.dimensions)
         ]
       );
