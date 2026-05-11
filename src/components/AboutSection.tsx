@@ -5,7 +5,7 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 const highlights = [
   { icon: Factory, title: "Own Manufacturing Unit", desc: "In-house CNC machining, threading & heat treatment facility in Mumbai" },
   { icon: Shield, title: "Quality Certified", desc: "ISO 9001:2015 compliant with full material traceability & MTC" },
-  { icon: Award, title: "25+ Years Legacy", desc: "Trusted by EPC contractors, refineries & power plants across India" },
+  { icon: Award, title: "9+ Year Legacy", desc: "Trusted by EPC contractors, refineries & power plants across India" },
   { icon: Truck, title: "Pan-India Delivery", desc: "Nationwide supply chain with competitive pricing & timely dispatch" },
 ];
 

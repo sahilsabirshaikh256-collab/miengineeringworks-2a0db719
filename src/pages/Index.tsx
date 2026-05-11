@@ -12,7 +12,6 @@ import GradeChartSection from "@/components/GradeChartSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import CustomSections from "@/components/CustomSections";
 import SEO from "@/components/SEO";
 
 const Index = () => {
@@ -20,7 +19,7 @@ const Index = () => {
     <PageTransition>
       <SEO
         title="M.I. Engineering Works | ASTM A193 Grade B7 Fasteners Manufacturer & Supplier Mumbai India"
-        description="M.I. Engineering Works — Leading manufacturer & supplier of ASTM A193 Grade B7 stud bolts, hex bolts, threaded rods, anchor bolts & high-tensile fasteners in Mumbai, India. 25+ years experience, 500+ clients. Call +91-9819972301."
+        description="M.I. Engineering Works — Leading manufacturer & supplier of ASTM A193 Grade B7 stud bolts, hex bolts, threaded rods, anchor bolts & high-tensile fasteners in Mumbai, India. 9+ years experience, 500+ clients. Call +91-9819972301."
         keywords={[
           "ASTM A193 Grade B7 manufacturer",
           "stud bolts manufacturer Mumbai",
@@ -37,24 +36,16 @@ const Index = () => {
       />
       <div className="min-h-screen">
         <Header />
-        <CustomSections position="top" />
         <HeroSection />
-        <CustomSections position="after-hero" />
         <ProductSlider />
         <AboutSection />
-        <CustomSections position="after-about" />
         <ProductsSection />
         <StatsCounter />
-        <CustomSections position="after-stats" />
         <ApplicationsSection />
-        <CustomSections position="after-applications" />
         <StandardsSection />
-        <CustomSections position="after-standards" />
         <GallerySection />
-        <CustomSections position="after-gallery" />
         <SpecificationsSection />
         <GradeChartSection />
-        <CustomSections position="before-contact" />
         <ContactSection />
         <Footer />
       </div>
