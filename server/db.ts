@@ -5,11 +5,13 @@ import * as schema from "../shared/schema";
 
 const { Pool } = pkg;
 
-if (!process.env.DATABASE_URL) {
+const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+if (!databaseUrl) {
   // Log a clear warning instead of throwing — prevents the Vercel function from
   // crashing at import time. Errors surface when the first DB query is attempted.
   console.error(
-    "[db] WARNING: DATABASE_URL is not set.\n" +
+    "[db] WARNING: DATABASE_URL or POSTGRES_URL is not set.\n" +
     "     Admin login will use the ADMIN_PASSWORD env var as fallback.\n" +
     "     To enable full database features on Vercel, set DATABASE_URL to a\n" +
     "     public PostgreSQL URL (e.g. Neon: https://neon.tech, Supabase: https://supabase.com)"
@@ -17,7 +19,10 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || "postgresql://none:none@127.0.0.1:5432/none",
+  connectionString: databaseUrl || "postgresql://none:none@127.0.0.1:5432/none",
+  ssl: databaseUrl ? {
+    rejectUnauthorized: false,
+  } : false,
   // Keep timeouts short on serverless — Vercel functions timeout at 10s by default.
   connectionTimeoutMillis: 5000,
   idleTimeoutMillis: 8000,

@@ -29,15 +29,15 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-charcoal/90 via-charcoal/60 to-transparent" />
       </motion.div>
 
-      {/* Floating particles */}
+      {/* Floating particles - reduced for performance */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(8)].map((_, i) => (
+        {[...Array(4)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 rounded-full bg-primary/30"
-            style={{ left: `${10 + i * 12}%`, top: `${15 + (i % 4) * 20}%` }}
-            animate={{ y: [0, -40, 0], opacity: [0.15, 0.5, 0.15], scale: [1, 1.5, 1] }}
-            transition={{ duration: 5 + i * 0.7, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
+            style={{ left: `${10 + i * 20}%`, top: `${15 + (i % 2) * 30}%` }}
+            animate={{ y: [0, -40, 0], opacity: [0.15, 0.4, 0.15] }}
+            transition={{ duration: 6 + i * 0.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.5 }}
           />
         ))}
       </div>

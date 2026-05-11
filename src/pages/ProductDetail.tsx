@@ -1,15 +1,102 @@
 import { useParams, Link } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, CheckCircle2, Phone, Mail } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Phone, Mail, X } from "lucide-react";
 import { api, type Product } from "@/lib/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 
+const GradeChartModal = ({ isOpen, onClose, productName }: { isOpen: boolean; onClose: () => void; productName: string }) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/50 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-card rounded-xl border border-border shadow-elegant max-w-4xl w-full max-h-[90vh] overflow-auto"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-gradient-dark px-6 py-4 border-b border-border flex items-center justify-between">
+          <h2 className="font-heading text-xl md:text-2xl font-bold text-gold-light">Fastener Grade Chart</h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5 text-foreground" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-secondary/50">
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Product</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Grades</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Material</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Tensile</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">Yield</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">DIN</th>
+                  <th className="text-left px-4 py-3 font-semibold text-foreground">ISO</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {gradeChartData.map((d) => (
+                  <tr key={d.product} className="hover:bg-secondary/30 transition-colors">
+                    <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{d.product}</td>
+                    <td className="px-4 py-3 text-foreground text-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {d.grades.map((g) => (
+                          <span key={g} className="bg-primary/10 px-2 py-1 rounded text-primary font-medium">
+                            {g}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{d.material}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">{d.tensile}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">{d.yield}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.din}</td>
+                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.iso}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const gradeChartData = [
+  { product: "Stud Bolts", grades: ["B7", "B7M", "B16", "L7"], material: "ASTM A193 Grade B7", tensile: "860 MPa", yield: "720 MPa", din: "DIN 976", iso: "ISO 4014" },
+  { product: "Hex Bolts", grades: ["B7", "B16", "Grade 10.9", "Grade 12.9"], material: "ASTM A193 Grade B7", tensile: "860 MPa", yield: "720 MPa", din: "DIN 931", iso: "ISO 4014" },
+  { product: "Heavy Hex Bolts", grades: ["B7", "B16", "Grade 10.9"], material: "ASTM A193 Grade B7", tensile: "860 MPa", yield: "720 MPa", din: "DIN 6914", iso: "ISO 7411" },
+  { product: "Socket Head Cap Screws", grades: ["Grade 8.8", "Grade 10.9", "Stainless 304"], material: "Steel / Stainless", tensile: "860 MPa", yield: "720 MPa", din: "DIN 912", iso: "ISO 4762" },
+  { product: "Eye Bolts", grades: ["B7", "B16", "Grade 10.9"], material: "ASTM A193 Grade B7", tensile: "860 MPa", yield: "720 MPa", din: "DIN 444", iso: "ISO 2342" },
+  { product: "U Bolts", grades: ["B7", "Grade 8.8", "Grade 10.9"], material: "ASTM A193 Grade B7", tensile: "860 MPa", yield: "720 MPa", din: "DIN 3570", iso: "ISO 1479" },
+  { product: "Anchor Bolts", grades: ["B7", "B16", "Grade 10.9"], material: "ASTM A193 Grade B7", tensile: "860 MPa", yield: "720 MPa", din: "DIN 529", iso: "ISO 2320" },
+  { product: "Hex Nuts", grades: ["2H", "2HM", "Gr 4", "ISO 10.9"], material: "Carbon / Alloy Steel", tensile: "248–352 HBW", yield: "150 ksi", din: "DIN 934", iso: "ISO 4032" },
+];
+
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [showGradeChart, setShowGradeChart] = useState(false);
   const { data: product, isLoading } = useQuery<Product>({
     queryKey: ["/api/products", slug],
     queryFn: () => api(`/api/products/${slug}`),
@@ -285,7 +372,7 @@ const ProductDetail = () => {
               },
               {
                 icon: "🏷️",
-                title: "Available Grades",
+                title: "Grades",
                 content: (
                   <>
                     <div className="flex flex-wrap gap-2 mb-6">
@@ -303,6 +390,14 @@ const ProductDetail = () => {
                         </motion.span>
                       ))}
                     </div>
+                    <motion.button
+                      onClick={() => setShowGradeChart(true)}
+                      className="w-full bg-primary text-primary-foreground font-semibold py-2.5 px-4 rounded-lg hover:opacity-90 transition-opacity mb-4"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      View Grade Chart
+                    </motion.button>
                     <h3 className="font-heading text-sm font-bold text-foreground mb-3">Surface Finish</h3>
                     <ul className="space-y-2">
                       {product.finish.map((f) => (
@@ -356,8 +451,6 @@ const ProductDetail = () => {
         </div>
       </section>
 
-      {/* Reviews */}
-
       {/* Related Products */}
       <section className="py-16 bg-background">
         <div className="container">
@@ -403,6 +496,9 @@ const ProductDetail = () => {
           </div>
         </div>
       </section>
+
+      {/* Grade Chart Modal */}
+      <GradeChartModal isOpen={showGradeChart} onClose={() => setShowGradeChart(false)} productName={product.name} />
 
       <Footer />
     </div>
