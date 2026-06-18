@@ -43,6 +43,10 @@ export default function CategoryPage() {
         description={`${cat.description} Manufactured by M.I. Engineering Works, Mumbai.`}
         keywords={[cat.name.toLowerCase(), `${cat.name.toLowerCase()} manufacturer`, "industrial fasteners", "M.I. Engineering Works"]}
         path={`/products/category/${cat.slug}`}
+        breadcrumbs={[
+          { name: "Products", path: "/products" },
+          { name: cat.name, path: `/products/category/${cat.slug}` },
+        ]}
       />
       <Header />
       <main className="bg-background">

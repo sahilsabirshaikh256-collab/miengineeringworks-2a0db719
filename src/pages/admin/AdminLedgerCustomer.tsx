@@ -46,12 +46,12 @@ const emptyForm: FormState = {
 
 export default function AdminLedgerCustomer() {
   const params = useParams<{ name: string }>();
-  const customerId = Number(params.name);
+  const customerId = params.name || "";
   const nav = useNavigate();
   const qc = useQueryClient();
   const { toast } = useToast();
 
-  const validId = Number.isFinite(customerId) && customerId > 0;
+  const validId = customerId.length > 0;
 
   const { data: customer, isLoading: cLoading, error: cError } = useQuery<Customer>({
     queryKey: ["/api/admin/customers", customerId],
@@ -98,7 +98,7 @@ export default function AdminLedgerCustomer() {
   });
 
   const update = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: any }) =>
       api(`/api/admin/ledger/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/admin/ledger"] });
@@ -108,7 +108,7 @@ export default function AdminLedgerCustomer() {
   });
 
   const remove = useMutation({
-    mutationFn: (id: number) => api(`/api/admin/ledger/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string) => api(`/api/admin/ledger/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/admin/ledger"] });
       toast({ title: "Deleted" });

@@ -1,9 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-
 export type SiteContentMap = Record<string, string>;
 
 export const SITE_CONTENT_DEFAULTS: SiteContentMap = {
-  // Brand / identity
   "brand.name": "M.I. Engineering Works",
   "brand.tagline": "Premium Fastener Solutions",
   "brand.logo": "",
@@ -17,32 +14,21 @@ export const SITE_CONTENT_DEFAULTS: SiteContentMap = {
     { label: "Facebook", url: "https://www.facebook.com/profile.php?id=61587684155116", icon: "facebook" },
     { label: "WhatsApp", url: "https://wa.me/919819972301", icon: "whatsapp" },
   ]),
-
-  // Animation choices (preset IDs)
   "animations.product": "lift",
   "animations.background": "none",
-
-  // Hero
   "hero.eyebrow": "",
-  "hero.title": "ASTM A193 Grade B7",
-  "hero.titleAccent": "Fasteners",
-  "hero.subtitle":
-    "M.I. Engineering Works — trusted ASTM A193 Grade B7 manufacturer & supplier of stud bolts, hex bolts, threaded rods, anchor bolts & high-tensile alloy steel fasteners for petrochemical, oil & gas, and power plant applications. Based in Mumbai, India.",
+  "hero.title": "All Types of",
+  "hero.titleAccent": "Industrial Fasteners",
+  "hero.subtitle": "M.I. Engineering Works — trusted manufacturer & supplier of all types of industrial fasteners including bolts, nuts, screws, stud bolts, threaded rods, washers, flanges, pipe fittings & more. Based in Mumbai, India.",
   "hero.ctaPrimaryText": "View Products",
   "hero.ctaPrimaryUrl": "#products",
   "hero.ctaSecondaryText": "Get a Quote",
   "hero.ctaSecondaryUrl": "#contact",
-
-  // About
   "about.eyebrow": "About Us",
   "about.title": "M.I. Engineering",
   "about.titleAccent": "Works",
-  "about.body1":
-    "M.I. Engineering Works is a leading manufacturer and supplier of ASTM A193 Grade B7 high-tensile fasteners based in Mumbai, India. With over 25 years of expertise, we supply stud bolts, hex bolts, threaded rods, anchor bolts, and specialty fasteners to oil refineries, petrochemical plants, power stations, and EPC contractors across India and the Middle East.",
-  "about.body2":
-    "Our state-of-the-art manufacturing facility is equipped with CNC turning, precision threading, and heat treatment capabilities. Every fastener undergoes rigorous quality inspection with full material test certificates (MTCs) per EN 10204 Type 3.1.",
-
-  // Stats
+  "about.body1": "M.I. Engineering Works is a leading manufacturer and supplier of all types of industrial fasteners based in Mumbai, India. With over 25 years of expertise, we supply stud bolts, hex bolts, threaded rods, anchor bolts, nuts, washers, flanges, pipe fittings and specialty fasteners to oil refineries, petrochemical plants, power stations, and EPC contractors across India and the Middle East.",
+  "about.body2": "Our state-of-the-art manufacturing facility is equipped with CNC turning, precision threading, and heat treatment capabilities. Every fastener undergoes rigorous quality inspection with full material test certificates (MTCs) per EN 10204 Type 3.1.",
   "stats.eyebrow": "Our Track Record",
   "stats.title": "Numbers That",
   "stats.titleAccent": "Speak",
@@ -54,8 +40,6 @@ export const SITE_CONTENT_DEFAULTS: SiteContentMap = {
   "stats.ordersLabel": "Orders Delivered",
   "stats.industries": "12",
   "stats.industriesLabel": "Industries Served",
-
-  // Contact / company info
   "contact.eyebrow": "Get In Touch",
   "contact.title": "Contact",
   "contact.titleAccent": "Us",
@@ -67,18 +51,8 @@ export const SITE_CONTENT_DEFAULTS: SiteContentMap = {
 };
 
 export function useSiteContent() {
-  const { data } = useQuery<SiteContentMap>({
-    queryKey: ["/api/site-content"],
-    queryFn: async () => {
-      const r = await fetch("/api/site-content");
-      if (!r.ok) return {};
-      return r.json();
-    },
-    staleTime: 60_000,
-  });
-
   const get = (key: string, fallback?: string) =>
-    (data?.[key] ?? SITE_CONTENT_DEFAULTS[key] ?? fallback ?? "").toString();
+    (SITE_CONTENT_DEFAULTS[key] ?? fallback ?? "").toString();
 
-  return { content: data || {}, get };
+  return { content: SITE_CONTENT_DEFAULTS, get };
 }

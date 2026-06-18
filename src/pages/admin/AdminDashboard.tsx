@@ -1,12 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "./AdminLayout";
 import { api, clearToken, type Product, type Industry, type Standard, type ContactSubmission } from "@/lib/api";
 import type { Media } from "@/lib/api-extras";
-import { Package, Factory, Award, Mail, Image as ImageIcon, Video, LogOut, ShieldCheck } from "lucide-react";
+import { Package, Factory, Award, Mail, Image as ImageIcon, Video, LogOut, ShieldCheck, RefreshCw } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const AdminDashboard = () => {
   const nav = useNavigate();
+  const qc = useQueryClient();
+  const [reseeding, setReseeding] = useState(false);
+  const [reseedMsg, setReseedMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const { data: products } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
   const { data: industries } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries") });
   const { data: standards } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards") });
@@ -14,6 +18,25 @@ const AdminDashboard = () => {
   const { data: contacts } = useQuery<ContactSubmission[]>({ queryKey: ["/api/admin/contacts"], queryFn: () => api("/api/admin/contacts") });
 
   const logout = () => { clearToken(); nav("/admin/login", { replace: true }); };
+
+  const handleReseed = async () => {
+    if (!confirm("Yeh action Firebase mein saara data (products, industries, categories, standards) re-seed karega. Kya aap sure hain?")) return;
+    setReseeding(true);
+    setReseedMsg(null);
+    try {
+      const result = await api("/api/admin/reseed", { method: "POST" });
+      setReseedMsg({ ok: result.ok, text: result.message || (result.ok ? "Re-seed successful!" : result.error) });
+      if (result.ok) {
+        qc.invalidateQueries({ queryKey: ["/api/products"] });
+        qc.invalidateQueries({ queryKey: ["/api/industries"] });
+        qc.invalidateQueries({ queryKey: ["/api/standards"] });
+      }
+    } catch (e: any) {
+      setReseedMsg({ ok: false, text: e?.message || "Re-seed failed" });
+    } finally {
+      setReseeding(false);
+    }
+  };
 
   const photosCount = media?.filter((m) => m.type === "photo").length;
   const videosCount = media?.filter((m) => m.type === "video").length;
@@ -34,10 +57,19 @@ const AdminDashboard = () => {
           <h1 className="font-heading text-3xl font-bold text-foreground mb-1">Dashboard</h1>
           <p className="text-muted-foreground">Manage all editable content for the website from here.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-full px-3 py-1.5">
             <ShieldCheck className="w-3.5 h-3.5" /> Signed in
           </span>
+          <button
+            onClick={handleReseed}
+            disabled={reseeding}
+            title="Re-seed all products, industries, categories & standards into Firebase"
+            className="inline-flex items-center gap-2 text-sm font-semibold border border-primary/40 text-primary hover:bg-primary/10 px-3 py-2 rounded-md transition disabled:opacity-60"
+          >
+            <RefreshCw className={`w-4 h-4 ${reseeding ? "animate-spin" : ""}`} />
+            {reseeding ? "Re-seeding…" : "Re-Seed Data"}
+          </button>
           <button
             onClick={logout}
             data-testid="button-logout-dashboard"
@@ -47,6 +79,11 @@ const AdminDashboard = () => {
           </button>
         </div>
       </div>
+      {reseedMsg && (
+        <div className={`mb-6 px-4 py-3 rounded-lg border text-sm font-medium ${reseedMsg.ok ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400" : "bg-destructive/10 border-destructive/30 text-destructive"}`}>
+          {reseedMsg.ok ? "✅ " : "❌ "}{reseedMsg.text}
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {cards.map(({ key, to, label, icon: Icon, count }) => (

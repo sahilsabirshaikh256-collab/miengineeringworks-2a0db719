@@ -5,7 +5,6 @@ import AboutSection from "@/components/AboutSection";
 import ProductsSection from "@/components/ProductsSection";
 import ApplicationsSection from "@/components/ApplicationsSection";
 import StandardsSection from "@/components/StandardsSection";
-import GallerySection from "@/components/GallerySection";
 import StatsCounter from "@/components/StatsCounter";
 import SpecificationsSection from "@/components/SpecificationsSection";
 import GradeChartSection from "@/components/GradeChartSection";
@@ -18,19 +17,21 @@ const Index = () => {
   return (
     <PageTransition>
       <SEO
-        title="M.I. Engineering Works | ASTM A193 Grade B7 Fasteners Manufacturer & Supplier Mumbai India"
-        description="M.I. Engineering Works — Leading manufacturer & supplier of ASTM A193 Grade B7 stud bolts, hex bolts, threaded rods, anchor bolts & high-tensile fasteners in Mumbai, India. 9+ years experience, 500+ clients. Call +91-9819972301."
+        title="M.I. Engineering Works | All Types of Industrial Fasteners Manufacturer & Supplier Mumbai India"
+        description="M.I. Engineering Works — Leading manufacturer & supplier of all types of industrial fasteners including bolts, nuts, screws, stud bolts, threaded rods, washers, flanges, pipe fittings & more in Mumbai, India. 25+ years experience, 500+ clients. Call +91-9819972301."
         keywords={[
-          "ASTM A193 Grade B7 manufacturer",
+          "industrial fasteners manufacturer Mumbai",
+          "all types of fasteners supplier India",
           "stud bolts manufacturer Mumbai",
           "hex bolts supplier India",
           "threaded rods manufacturer",
           "anchor bolts supplier Mumbai",
           "foundation bolts manufacturer India",
           "high tensile fasteners Mumbai",
-          "B7 bolts manufacturer",
+          "flanges manufacturer India",
+          "pipe fittings supplier Mumbai",
           "fasteners manufacturer India",
-          "industrial fasteners supplier",
+          "nuts bolts screws washers supplier",
         ]}
         path="/"
       />
@@ -43,7 +44,6 @@ const Index = () => {
         <StatsCounter />
         <ApplicationsSection />
         <StandardsSection />
-        <GallerySection />
         <SpecificationsSection />
         <GradeChartSection />
         <ContactSection />

@@ -45,7 +45,7 @@ const reviews: Review[] = [
     company: "ONGC",
     avatar: "https://randomuser.me/api/portraits/men/52.jpg",
     rating: 4,
-    text: "Reliable supplier for ASTM A193 Grade B7 fasteners. Good communication and they accommodate custom length requirements. Packaging could be slightly better for export orders.",
+    text: "Reliable supplier for all types of industrial fasteners. Good communication and they accommodate custom length requirements. Packaging could be slightly better for export orders.",
     date: "10 Dec 2025",
   },
   {
@@ -85,7 +85,7 @@ const ReviewsSection = () => {
             What Our <span className="text-gradient-gold">Clients Say</span>
           </h2>
           <p className="text-sm text-muted-foreground mt-2 max-w-lg mx-auto">
-            Trusted by leading engineering companies across India for premium ASTM A193 Grade B7 fasteners.
+            Trusted by leading engineering companies across India for all types of premium industrial fasteners.
           </p>
         </motion.div>
 

@@ -12,5 +12,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /admin/*
 
-Sitemap: https://miengineeringworks.lovable.app/sitemap.xml
+Sitemap: https://miengineeringworks.com/sitemap.xml

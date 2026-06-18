@@ -53,8 +53,9 @@ const StatsCounter = () => {
     <section className="py-20 md:py-28 relative overflow-hidden">
       {/* Glassmorphism background */}
       <div className="absolute inset-0 bg-gradient-dark" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[120px]" />
+      {/* Neon grid accent — no blur */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
       
       <div className="container relative z-10" ref={ref}>
         <motion.div
@@ -90,7 +91,7 @@ const StatsCounter = () => {
                 transition={{ delay: i * 0.15, duration: 0.6 }}
               >
                 {/* Glassmorphism card */}
-                <div className="backdrop-blur-xl bg-primary-foreground/5 border border-primary/20 rounded-2xl p-6 md:p-8 text-center hover:bg-primary-foreground/10 hover:border-primary/40 transition-all duration-500 group-hover:shadow-[0_0_40px_-10px_hsl(43,72%,48%,0.3)]">
+                <div className="bg-primary-foreground/5 border border-primary/20 rounded-2xl p-6 md:p-8 text-center hover:bg-primary-foreground/10 hover:border-primary/60 transition-all duration-500 group-hover:shadow-[0_0_40px_-10px_hsl(265,90%,65%,0.35)]">
                   <motion.div
                     className="w-14 h-14 rounded-xl bg-primary/15 flex items-center justify-center mx-auto mb-4"
                     whileHover={{ rotate: 10, scale: 1.1 }}

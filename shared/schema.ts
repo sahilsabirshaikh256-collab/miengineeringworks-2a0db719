@@ -1,124 +1,128 @@
-import { pgTable, serial, integer, varchar, text, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const adminUsers = pgTable("admin_users", {
-  id: serial("id").primaryKey(),
-  username: varchar("username", { length: 64 }).notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
-});
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  slug: varchar("slug", { length: 64 }).notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description").notNull().default(""),
-  image: text("image").notNull().default(""),
-  sortOrder: integer("sort_order").notNull().default(0),
-});
+export type Category = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  image: string;
+  sortOrder: number;
+};
 
-export const insertCategorySchema = createInsertSchema(categories).omit({ id: true });
-export type Category = typeof categories.$inferSelect;
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Product = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  image: string;
+  standard: string;
+  description: string;
+  sizes: string;
+  threads: string;
+  length: string;
+  material: string;
+  finish: string[];
+  grades: string[];
+  applications: string[];
+  dimensions: any[];
+};
 
-export const products = pgTable("products", {
-  id: serial("id").primaryKey(),
-  slug: varchar("slug", { length: 128 }).notNull().unique(),
-  name: text("name").notNull(),
-  category: varchar("category", { length: 64 }).notNull().default(""),
-  image: text("image").notNull(),
-  standard: text("standard").notNull(),
-  description: text("description").notNull(),
-  sizes: text("sizes").notNull().default(""),
-  threads: text("threads").notNull().default(""),
-  length: text("length").notNull().default(""),
-  material: text("material").notNull().default(""),
-  finish: text("finish").array().notNull().default([]),
-  grades: text("grades").array().notNull().default([]),
-  applications: text("applications").array().notNull().default([]),
-  dimensions: jsonb("dimensions").notNull().default([]),
-  sortOrder: serial("sort_order"),
-});
+export type Industry = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  heroDescription: string;
+  image: string;
+  grades: any[];
+  applications: any[];
+  keyRequirements: string[];
+};
 
-export const industries = pgTable("industries", {
-  id: serial("id").primaryKey(),
-  slug: varchar("slug", { length: 128 }).notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description").notNull(),
-  heroDescription: text("hero_description").notNull().default(""),
-  image: text("image").notNull(),
-  grades: jsonb("grades").notNull().default([]),
-  applications: jsonb("applications").notNull().default([]),
-  keyRequirements: text("key_requirements").array().notNull().default([]),
-  sortOrder: serial("sort_order"),
-});
+export type Standard = {
+  id: string;
+  slug: string;
+  code: string;
+  name: string;
+  region: string;
+  description: string;
+  image: string;
+  scope: string;
+  applications: string[];
+  materials: string[];
+  examples: string[];
+};
 
-export const standards = pgTable("standards", {
-  id: serial("id").primaryKey(),
-  slug: varchar("slug", { length: 128 }).notNull().unique(),
-  code: text("code").notNull(),
-  name: text("name").notNull(),
-  region: text("region").notNull().default(""),
-  description: text("description").notNull(),
-  image: text("image").notNull().default(""),
-  scope: text("scope").notNull().default(""),
-  applications: text("applications").array().notNull().default([]),
-  materials: text("materials").array().notNull().default([]),
-  examples: text("examples").array().notNull().default([]),
-  sortOrder: serial("sort_order"),
-});
+export type Media = {
+  id: string;
+  type: string;
+  url: string;
+  title: string;
+  caption: string;
+  thumbnail: string;
+};
 
-export const media = pgTable("media", {
-  id: serial("id").primaryKey(),
-  type: varchar("type", { length: 16 }).notNull(),
-  url: text("url").notNull(),
-  title: text("title").notNull().default(""),
-  caption: text("caption").notNull().default(""),
-  thumbnail: text("thumbnail").notNull().default(""),
-  sortOrder: serial("sort_order"),
-});
+export type ContactSubmission = {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  message: string;
+  productName: string;
+  productGrade: string;
+  productStandard: string;
+  createdAt: string;
+};
 
-export const contactSubmissions = pgTable("contact_submissions", {
-  id: serial("id").primaryKey(),
-  fullName: text("full_name").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone").notNull(),
-  companyName: text("company_name").notNull().default(""),
-  message: text("message").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+export type SiteContent = {
+  id: string;
+  key: string;
+  value: string;
+};
 
-// Editable site content — key/value JSON store for hero/about/stats/contact, etc.
-export const siteContent = pgTable("site_content", {
-  id: serial("id").primaryKey(),
-  key: varchar("key", { length: 128 }).notNull().unique(),
-  value: text("value").notNull().default(""),
-});
+export type Customer = {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  createdAt: string;
+};
 
-// Custom sections admin can add to the homepage
-export const pageSections = pgTable("page_sections", {
-  id: serial("id").primaryKey(),
-  page: varchar("page", { length: 64 }).notNull().default("home"),
-  position: varchar("position", { length: 64 }).notNull().default("after-stats"),
-  title: text("title").notNull().default(""),
-  subtitle: text("subtitle").notNull().default(""),
-  body: text("body").notNull().default(""),
-  image: text("image").notNull().default(""),
-  linkText: text("link_text").notNull().default(""),
-  linkUrl: text("link_url").notNull().default(""),
-  enabled: boolean("enabled").notNull().default(true),
-  sortOrder: serial("sort_order"),
-});
+export type LedgerEntry = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  invoiceDate: string;
+  invoiceNo: string;
+  amountDue: string;
+  paymentDate: string;
+  amountReceived: string;
+  receiptNo: string;
+  notes: string;
+  tallyReceiptDone: boolean;
+  bookEntryDone: boolean;
+  createdAt: string;
+};
 
-export const insertMediaSchema = createInsertSchema(media).omit({ id: true, sortOrder: true });
-export type Media = typeof media.$inferSelect;
-export type InsertMedia = z.infer<typeof insertMediaSchema>;
+export type PageSection = {
+  id: string;
+  page: string;
+  position: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  image: string;
+  linkText: string;
+  linkUrl: string;
+  enabled: boolean;
+  sortOrder: number;
+};
 
-export const insertProductSchema = createInsertSchema(products).omit({ id: true, sortOrder: true });
-export const insertIndustrySchema = createInsertSchema(industries).omit({ id: true, sortOrder: true });
-export const insertStandardSchema = createInsertSchema(standards).omit({ id: true, sortOrder: true });
+// ─── Zod Schemas ──────────────────────────────────────────────────────────────
 
-// Contact: hand-rolled to avoid drizzle-zod ↔ zod v3/v4 cross-version issues
 export const insertContactSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   email: z.string().email("Valid email required"),
@@ -132,42 +136,14 @@ export const insertSiteContentSchema = z.object({
   value: z.string().default(""),
 });
 
-// Ledger / Khata — Customers (created first)
-export const customers = pgTable("customers", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  phone: text("phone").notNull().default(""),
-  address: text("address").notNull().default(""),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
 export const insertCustomerSchema = z.object({
   name: z.string().min(1, "Customer name is required"),
   phone: z.string().optional().default(""),
   address: z.string().optional().default(""),
 });
-export type Customer = typeof customers.$inferSelect;
-export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
-
-// Ledger / Khata — Entries (always linked to a customer)
-export const ledgerEntries = pgTable("ledger_entries", {
-  id: serial("id").primaryKey(),
-  customerId: integer("customer_id"),
-  customerName: text("customer_name").notNull(),
-  invoiceDate: text("invoice_date").notNull().default(""),
-  invoiceNo: text("invoice_no").notNull().default(""),
-  amountDue: text("amount_due").notNull().default("0"),
-  paymentDate: text("payment_date").notNull().default(""),
-  amountReceived: text("amount_received").notNull().default("0"),
-  receiptNo: text("receipt_no").notNull().default(""),
-  notes: text("notes").notNull().default(""),
-  tallyReceiptDone: boolean("tally_receipt_done").notNull().default(false),
-  bookEntryDone: boolean("book_entry_done").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
 
 export const insertLedgerSchema = z.object({
-  customerId: z.number().int().positive("Customer is required"),
+  customerId: z.string().min(1, "Customer is required"),
   customerName: z.string().min(1, "Customer name is required"),
   invoiceDate: z.string().optional().default(""),
   invoiceNo: z.string().optional().default(""),
@@ -179,8 +155,6 @@ export const insertLedgerSchema = z.object({
   tallyReceiptDone: z.boolean().optional().default(false),
   bookEntryDone: z.boolean().optional().default(false),
 });
-export type LedgerEntry = typeof ledgerEntries.$inferSelect;
-export type InsertLedger = z.infer<typeof insertLedgerSchema>;
 
 export const insertPageSectionSchema = z.object({
   page: z.string().default("home"),
@@ -194,15 +168,13 @@ export const insertPageSectionSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
-export type Product = typeof products.$inferSelect;
-export type Industry = typeof industries.$inferSelect;
-export type Standard = typeof standards.$inferSelect;
-export type ContactSubmission = typeof contactSubmissions.$inferSelect;
-export type SiteContent = typeof siteContent.$inferSelect;
-export type PageSection = typeof pageSections.$inferSelect;
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type InsertIndustry = z.infer<typeof insertIndustrySchema>;
-export type InsertStandard = z.infer<typeof insertStandardSchema>;
+export type InsertCategory = Omit<Category, "id">;
+export type InsertProduct = Omit<Product, "id">;
+export type InsertIndustry = Omit<Industry, "id">;
+export type InsertStandard = Omit<Standard, "id">;
+export type InsertMedia = Omit<Media, "id">;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type InsertSiteContent = z.infer<typeof insertSiteContentSchema>;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type InsertLedger = z.infer<typeof insertLedgerSchema>;
 export type InsertPageSection = z.infer<typeof insertPageSectionSchema>;
