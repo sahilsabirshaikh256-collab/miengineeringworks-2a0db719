@@ -446,7 +446,7 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   </div>
 );
 
-const Th = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+const Th = ({ children, className = "", title }: { children: React.ReactNode; className?: string; title?: string }) => (
   <th className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-foreground/80 ${className}`}>{children}</th>
 );
 
