@@ -108,7 +108,7 @@ export default function AdminLedger() {
   });
 
   const remove = useMutation({
-    mutationFn: (id: number) => api(`/api/admin/customers/${id}`, { method: "DELETE" }),
+    mutationFn: (id: string | number) => api(`/api/admin/customers/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["/api/admin/customers"] });
       qc.invalidateQueries({ queryKey: ["/api/admin/ledger"] });
