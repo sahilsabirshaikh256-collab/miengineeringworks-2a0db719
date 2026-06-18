@@ -1,35 +1,89 @@
-import { Mail, Phone, MapPin, Send } from "lucide-react";
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { Mail, Phone, MapPin, Send, Package, Tag } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useSearchParams } from "react-router-dom";
 
 const ContactSection = () => {
   const { get } = useSiteContent();
   const { toast } = useToast();
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", companyName: "", message: "" });
-
-  const mutation = useMutation({
-    mutationFn: (data: typeof form) => api("/api/contact", { method: "POST", body: JSON.stringify(data) }),
-    onSuccess: () => {
-      toast({ title: "Message sent!", description: "Thank you for contacting us. We will reach out shortly." });
-      setForm({ fullName: "", email: "", phone: "", companyName: "", message: "" });
-    },
-    onError: (e: any) => toast({ title: "Send failed", description: e?.message || "Please try again.", variant: "destructive" }),
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    companyName: "",
+    message: "",
+    productName: "",
+    productGrade: "",
+    productStandard: "",
   });
+  const [sending, setSending] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
+  // Auto-fill from URL params when arriving from a product page
+  useEffect(() => {
+    const productName = searchParams.get("product") || "";
+    const productGrade = searchParams.get("grade") || "";
+    const productStandard = searchParams.get("standard") || "";
+    if (productName || productGrade) {
+      setForm((prev) => ({
+        ...prev,
+        productName,
+        productGrade,
+        productStandard,
+        message: prev.message || buildDefaultMessage(productName, productGrade, productStandard),
+      }));
+    }
+  }, [searchParams]);
+
+  function buildDefaultMessage(name: string, grade: string, standard: string) {
+    if (!name) return "";
+    let msg = `I would like to request a quote for:\n\nProduct: ${name}`;
+    if (grade) msg += `\nGrade: ${grade}`;
+    if (standard) msg += `\nStandard: ${standard}`;
+    msg += `\n\nPlease provide pricing, availability, and lead time.`;
+    return msg;
+  }
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.fullName.trim() || !form.email.trim() || !form.phone.trim() || !form.message.trim()) {
       toast({ title: "Missing fields", description: "Please fill all required fields.", variant: "destructive" });
       return;
     }
-    mutation.mutate(form);
+    setSending(true);
+    try {
+      const res = await fetch("/api/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        toast({ title: "Quote request sent!", description: "We'll get back to you within 24 hours." });
+        setForm({ fullName: "", email: "", phone: "", companyName: "", message: "", productName: "", productGrade: "", productStandard: "" });
+      } else {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Submission failed");
+      }
+    } catch (err: any) {
+      // Fallback to email client if API unavailable
+      const subject = encodeURIComponent(
+        `${form.productName ? `Quote Request: ${form.productName}` : `Fastener Enquiry`} from ${form.fullName}${form.companyName ? ` (${form.companyName})` : ""}`
+      );
+      const body = encodeURIComponent(
+        `Name: ${form.fullName}\nEmail: ${form.email}\nPhone: ${form.phone}\nCompany: ${form.companyName || "N/A"}\n\nMessage:\n${form.message}`
+      );
+      window.open(`mailto:${get("contact.email")}?subject=${subject}&body=${body}`, "_blank");
+      toast({ title: "Opening email client", description: "Please send the pre-filled email from your email application." });
+    } finally {
+      setSending(false);
+    }
   };
 
   const update = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((p) => ({ ...p, [k]: e.target.value }));
+
+  const hasProductContext = form.productName || form.productGrade;
 
   return (
     <section id="contact" className="py-20 md:py-28 bg-secondary/30">
@@ -43,7 +97,6 @@ const ContactSection = () => {
         </div>
 
         <div className="grid lg:grid-cols-5 gap-10 max-w-6xl mx-auto">
-          {/* Info cards */}
           <div className="lg:col-span-2 space-y-5">
             <a href={`mailto:${get("contact.email")}`} data-testid="link-email" className="block bg-card rounded-lg border border-border p-6 shadow-elegant hover:border-primary/40 hover:shadow-gold transition">
               <div className="flex items-start gap-4">
@@ -85,10 +138,32 @@ const ContactSection = () => {
             </div>
           </div>
 
-          {/* Form */}
           <form onSubmit={onSubmit} className="lg:col-span-3 bg-card rounded-lg border border-border p-6 md:p-8 shadow-elegant" data-testid="form-contact">
-            <h3 className="font-heading text-2xl font-bold text-foreground mb-2">Send Us a Message</h3>
+            <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
+              {hasProductContext ? "Send Quote Request" : "Send Us a Message"}
+            </h3>
             <p className="text-sm text-muted-foreground mb-6" data-testid="text-form-intro">{get("contact.formIntro")}</p>
+
+            {/* Product context banner */}
+            {hasProductContext && (
+              <div className="mb-5 bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
+                <Package className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Quote Request for:</div>
+                  <div className="text-sm text-primary font-medium mt-0.5">{form.productName}</div>
+                  <div className="flex flex-wrap gap-2 mt-1.5">
+                    {form.productGrade && (
+                      <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+                        <Tag className="w-3 h-3" /> Grade: {form.productGrade}
+                      </span>
+                    )}
+                    {form.productStandard && (
+                      <span className="text-xs text-muted-foreground">{form.productStandard}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid md:grid-cols-2 gap-4">
               <Field label="Full Name *">
@@ -119,11 +194,11 @@ const ContactSection = () => {
 
             <button
               type="submit"
-              disabled={mutation.isPending}
+              disabled={sending}
               data-testid="button-submit-contact"
               className="mt-6 inline-flex items-center justify-center gap-2 w-full md:w-auto px-8 py-3 rounded-md bg-gradient-gold text-charcoal font-semibold hover:opacity-90 transition disabled:opacity-60"
             >
-              {mutation.isPending ? "Sending…" : (<><Send className="w-4 h-4" /> Send Message</>)}
+              {sending ? "Sending…" : (<><Send className="w-4 h-4" /> {hasProductContext ? "Send Quote Request" : "Send Message"}</>)}
             </button>
           </form>
         </div>

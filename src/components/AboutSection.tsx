@@ -13,9 +13,11 @@ const AboutSection = () => {
   const { get } = useSiteContent();
   return (
     <section id="about" className="py-20 md:py-28 bg-background relative overflow-hidden">
-      {/* Subtle glass orbs */}
-      <div className="absolute top-20 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px]" />
-      <div className="absolute bottom-20 left-0 w-60 h-60 bg-primary/3 rounded-full blur-[80px]" />
+      {/* Neon corner accents — no blur */}
+      <div className="absolute top-0 right-0 w-px h-40 bg-gradient-to-b from-primary/60 to-transparent" />
+      <div className="absolute top-0 right-0 w-40 h-px bg-gradient-to-l from-primary/60 to-transparent" />
+      <div className="absolute bottom-0 left-0 w-px h-40 bg-gradient-to-t from-primary/40 to-transparent" />
+      <div className="absolute bottom-0 left-0 w-40 h-px bg-gradient-to-r from-primary/40 to-transparent" />
 
       <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -54,7 +56,7 @@ const AboutSection = () => {
               return (
                 <motion.div
                   key={item.title}
-                  className="backdrop-blur-md bg-card/80 border border-border rounded-xl p-5 hover:shadow-gold hover:border-primary/30 transition-all duration-500 group"
+                  className="bg-card border border-border rounded-xl p-5 hover:shadow-gold hover:border-primary/50 transition-all duration-500 group"
                   initial={{ opacity: 0, y: 30, scale: 0.95 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true }}

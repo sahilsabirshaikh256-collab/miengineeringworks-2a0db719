@@ -1,51 +1,41 @@
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useEditableTables } from "@/hooks/useEditableTables";
+import { ChevronDown } from "lucide-react";
+import { gradeChartCategories } from "@/data/staticData";
 
-const dimensionalStandardsWithProducts = [
-  { product: "Stud Bolts", grades: ["B7", "B7M", "B16", "L7", "L7M", "B8", "B8M"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 976", asme: "ASME B18.31.2", iso: "ISO 4014", uni: "UNI 6610", bs: "BS 4882", tensile: "860 MPa", yield: "720 MPa", application: "Flange Connections, Pressure Vessels, Heat Exchangers" },
-  { product: "Double End Studs", grades: ["B7", "B7M", "B16", "L7", "B8", "B8M"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 938/939", asme: "ASME B18.31.2", iso: "ISO 4014", uni: "UNI 5911", bs: "BS 4882", tensile: "860 MPa", yield: "720 MPa", application: "Turbine Casings, Valve Bodies, Pump Assemblies" },
-  { product: "Hex Bolts", grades: ["B7", "B16", "L7", "Grade 8.8", "Grade 10.9", "Grade 12.9"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 931", asme: "ASME B18.2.1", iso: "ISO 4014", uni: "UNI 5737", bs: "BS 3692", tensile: "860 MPa", yield: "720 MPa", application: "Structural Steelwork, Heavy Equipment, Bridge Construction" },
-  { product: "Heavy Hex Bolts", grades: ["B7", "B16", "Grade 10.9", "Grade 12.9"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 6914", asme: "ASME B18.2.1", iso: "ISO 7411", uni: "UNI 5712", bs: "—", tensile: "860 MPa", yield: "720 MPa", application: "Heavy Duty Fastening, Structural Applications" },
-  { product: "Socket Head Cap Screws", grades: ["Grade 8.8", "Grade 10.9", "Grade 12.9", "Stainless 304", "Stainless 316"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 912", asme: "ASME B18.3", iso: "ISO 4762", uni: "UNI 5931", bs: "BS 4168-1", tensile: "860 MPa", yield: "720 MPa", application: "Machinery, Industrial Equipment, Precision Assemblies" },
-  { product: "Countersunk Screws", grades: ["Grade 8.8", "Grade 10.9", "Grade 12.9", "Stainless 304"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 7991", asme: "ASME B18.3", iso: "ISO 10642", uni: "UNI 5933", bs: "BS 4168-8", tensile: "860 MPa", yield: "720 MPa", application: "Flush Surface Fastening, Aircraft, Automotive" },
-  { product: "Socket Set Screws", grades: ["Grade 8.8", "Grade 10.9", "Stainless 304", "Stainless 316"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 913-916", asme: "ASME B18.3", iso: "ISO 4026-4029", uni: "UNI 5923-5929", bs: "BS 4168", tensile: "860 MPa", yield: "720 MPa", application: "Mechanical Connections, Shaft Locking, Position Setting" },
-  { product: "Eye Bolts", grades: ["B7", "B16", "Stainless 304", "Grade 10.9"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 444", asme: "ASME B18.15", iso: "ISO 2342", uni: "UNI 6058", bs: "BS 2104", tensile: "860 MPa", yield: "720 MPa", application: "Lifting Equipment, Cable Attachments, Rigging" },
-  { product: "U Bolts", grades: ["B7", "Grade 8.8", "Grade 10.9", "Stainless 304"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 3570", asme: "ASME B18.31.5", iso: "ISO 1479", uni: "—", bs: "BS 1575", tensile: "860 MPa", yield: "720 MPa", application: "Pipe Clamps, Cable Support, Suspension Systems" },
-  { product: "Anchor Bolts", grades: ["B7", "B16", "Grade 10.9", "Grade 12.9"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 529", asme: "ASME B18.31", iso: "ISO 2320", uni: "UNI 6531", bs: "BS 4625", tensile: "860 MPa", yield: "720 MPa", application: "Foundation Bolting, Equipment Mounting, Concrete Anchoring" },
-  { product: "Threaded Rods / All Threaded Studs", grades: ["B7", "B7M", "B16", "L7", "Grade 10.9", "Grade 12.9"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 976", asme: "ASME B18.31.2", iso: "ISO 7681", uni: "UNI 5641", bs: "BS 4848", tensile: "860 MPa", yield: "720 MPa", application: "Continuous Fastening, Custom Stud Applications, Industrial Assembly" },
-  { product: "Hexagon Nuts", grades: ["ASTM A194 2H", "ASTM A194 2HM", "ASTM A194 Gr 4", "ASTM A194 Gr 7", "ISO 10.9", "ISO 12.9"], material: "Carbon / Alloy Steel, Stainless Steel", din: "DIN 934", asme: "ASME B18.2.2", iso: "ISO 4032", uni: "UNI 5587", bs: "BS 3692", tensile: "248–352 HBW", yield: "150 ksi Proof Load", application: "General Fastening, Industrial Assembly, Structural Connections" },
-  { product: "Lock Nuts", grades: ["ASTM A194 2H", "ASTM A194 Gr 4", "ISO 7040", "Nylon Insert"], material: "Carbon Steel, Alloy Steel", din: "DIN 985", asme: "ASME B18.16.2", iso: "ISO 7040", uni: "UNI 5587", bs: "BS 4149", tensile: "248–352 HBW", yield: "150 ksi Proof Load", application: "Vibration-Prone Applications, Machinery, Motor Mounting" },
-  { product: "Flat Washers", grades: ["ASTM F844", "ASTM F436", "ISO 7089", "Stainless"], material: "Carbon Steel, Stainless Steel", din: "DIN 125", asme: "ASME B18.22.1", iso: "ISO 7089", uni: "UNI 6592", bs: "BS 4320", tensile: "—", yield: "—", application: "Stress Distribution, Surface Protection, Joint Sealing" },
-  { product: "Lock Washers", grades: ["ASTM F959", "ASTM F434", "ISO 10673", "Belleville"], material: "Carbon Steel, Stainless Steel", din: "DIN 6901/6902", asme: "ASME B18.21.1", iso: "ISO 10673", uni: "UNI 6593", bs: "BS 4464", tensile: "—", yield: "—", application: "Anti-Vibration, Load Retention, Spring-Back Action" },
-  { product: "Rivets", grades: ["ASTM B117", "ISO 1051", "Aircraft Type", "Monel"], material: "Aluminum, Copper, Stainless Steel", din: "DIN 302/661", asme: "ASME B18.14", iso: "ISO 1051", uni: "UNI 6616", bs: "BS 1449", tensile: "210–300 MPa", yield: "120–170 MPa", application: "Aircraft Construction, Ship Building, Sheet Metal Assembly" },
-  { product: "Studs for Flanges", grades: ["B7", "B7M", "B16", "L7", "L7M"], material: "ASTM A193 Grade B7 (42CrMo4 / AISI 4140)", din: "DIN 2510", asme: "ASME B18.31.2", iso: "ISO 4014", uni: "UNI 6610", bs: "BS 4882", tensile: "860 MPa", yield: "720 MPa", application: "Flange Fastening, Pressure Equipment, High-Temperature Service" },
-];
+const ALL = "All Categories";
 
-const GradeChartSection = () => {
-  const { dims: dimensionalStandards } = useEditableTables();
-  
+const GradeChartSection = ({ defaultCategory }: { defaultCategory?: string }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string>(defaultCategory || ALL);
+  const [open, setOpen] = useState(false);
+
+  const categoryNames = [ALL, ...gradeChartCategories.map((c) => c.name)];
+
+  const displayedCategories = useMemo(() => {
+    if (selectedCategory === ALL) return gradeChartCategories;
+    return gradeChartCategories.filter((c) => c.name === selectedCategory);
+  }, [selectedCategory]);
+
+  const totalEntries = displayedCategories.reduce((sum, c) => sum + c.entries.length, 0);
+
   return (
     <section id="grade-chart" className="py-20 md:py-28 bg-background">
       <div className="container">
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <motion.span
-            className="text-sm font-semibold tracking-[0.3em] uppercase text-primary inline-block"
-            initial={{ opacity: 0, letterSpacing: "0.1em" }}
-            whileInView={{ opacity: 1, letterSpacing: "0.3em" }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            Reference
-          </motion.span>
+          <span className="text-sm font-semibold tracking-[0.3em] uppercase text-primary inline-block">Reference</span>
           <h2 className="font-heading text-3xl md:text-5xl font-bold mt-3 text-foreground">
-            Fastener <span className="text-gradient-gold">Dimensional Standards</span>
+            Fastener <span className="text-gradient-gold">Grade Chart</span>
           </h2>
+          <p className="text-muted-foreground mt-4 max-w-2xl mx-auto text-sm">
+            Complete dimensional standards, grades, materials and applications for all fastener types.
+            Filter by category using the dropdown below.
+          </p>
           <motion.div
             className="gold-divider w-24 mx-auto mt-6"
             initial={{ scaleX: 0 }}
@@ -55,59 +45,118 @@ const GradeChartSection = () => {
           />
         </motion.div>
 
-        {/* Comprehensive Dimensional Standards with All Products */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-card rounded-lg border border-border shadow-elegant overflow-hidden">
-          <div className="bg-gradient-dark px-6 py-4">
-            <h3 className="font-heading text-xl font-semibold text-gold-light">Complete Fastener Product Chart with Grades & Dimensional Standards</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-secondary/50 sticky top-0">
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Product</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Available Grades</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Material</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">DIN</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">ASME</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">ISO</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">UNI</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">BS</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Strength / Spec</th>
-                  <th className="text-left px-4 py-3 font-semibold text-foreground">Applications</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {dimensionalStandardsWithProducts.map((d) => (
-                  <tr key={d.product} className="hover:bg-secondary/30 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{d.product}</td>
-                    <td className="px-4 py-3 text-foreground text-xs">
-                      <div className="flex flex-wrap gap-1">
-                        {d.grades.map((grade) => (
-                          <span key={grade} className="bg-primary/10 px-2 py-1 rounded text-primary font-medium">
-                            {grade}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{d.material}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.din}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.asme}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.iso}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.uni}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap font-mono text-xs">{d.bs}</td>
-                    <td className="px-4 py-3 text-muted-foreground whitespace-nowrap text-xs">
-                      <div>Tensile: {d.tensile}</div>
-                      <div>Yield: {d.yield}</div>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground text-xs">{d.application}</td>
-                  </tr>
+        {/* Category Dropdown */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+          <div className="relative">
+            <button
+              onClick={() => setOpen(!open)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-border bg-card text-sm font-semibold text-foreground hover:border-primary/40 transition min-w-[220px] justify-between"
+            >
+              <span>{selectedCategory}</span>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+            </button>
+            {open && (
+              <div className="absolute top-full left-0 mt-1 z-50 min-w-[220px] bg-card border border-border rounded-lg shadow-elegant overflow-hidden">
+                {categoryNames.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => { setSelectedCategory(name); setOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition hover:bg-secondary ${
+                      selectedCategory === name ? "text-primary font-semibold bg-secondary/50" : "text-foreground"
+                    }`}
+                  >
+                    {name}
+                    {name !== ALL && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        ({gradeChartCategories.find((c) => c.name === name)?.entries.length ?? 0})
+                      </span>
+                    )}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            )}
           </div>
-        </motion.div>
 
-        {/* Legend */}
+          <div className="flex gap-2 flex-wrap">
+            {gradeChartCategories.map((cat) => (
+              <button
+                key={cat.name}
+                onClick={() => setSelectedCategory(cat.name === selectedCategory && selectedCategory !== ALL ? ALL : cat.name)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+                  selectedCategory === cat.name
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          <div className="ml-auto text-xs text-muted-foreground">
+            Showing {totalEntries} products
+          </div>
+        </div>
+
+        {/* Grade Tables by Category */}
+        <div className="space-y-8">
+          {displayedCategories.map((cat) => (
+            <motion.div
+              key={cat.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-card rounded-lg border border-border shadow-elegant overflow-hidden"
+            >
+              <div className="bg-gradient-dark px-6 py-3 flex items-center justify-between">
+                <h3 className="font-heading text-lg font-semibold text-gold-light">{cat.name}</h3>
+                <span className="text-xs text-gold-light/50">{cat.entries.length} products</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-secondary/50">
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">Product</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground">Grades</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground">Material</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">DIN</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">ASME / ASTM</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">ISO</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">BS</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">Tensile</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground whitespace-nowrap">Yield</th>
+                      <th className="text-left px-4 py-3 font-semibold text-foreground">Application</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {cat.entries.map((d) => (
+                      <tr key={d.product} className="hover:bg-secondary/30 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap text-xs">{d.product}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {d.grades.map((g) => (
+                              <span key={g} className="bg-primary/10 px-2 py-0.5 rounded text-primary font-medium text-[10px] whitespace-nowrap">{g}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs max-w-[160px]">{d.material}</td>
+                        <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">{d.din}</td>
+                        <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">{d.asme}</td>
+                        <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">{d.iso}</td>
+                        <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">{d.bs}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{d.tensile}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{d.yield_}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs max-w-[200px]">{d.application}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Standards Legend */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -115,31 +164,55 @@ const GradeChartSection = () => {
           className="mt-12 p-6 bg-secondary/30 rounded-lg border border-border"
         >
           <h4 className="font-heading text-lg font-semibold text-foreground mb-4">Standards Reference</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <p className="font-semibold text-primary">ASTM</p>
-              <p className="text-sm text-muted-foreground">American Society for Testing and Materials</p>
-            </div>
-            <div>
-              <p className="font-semibold text-primary">ASME</p>
-              <p className="text-sm text-muted-foreground">American Society of Mechanical Engineers</p>
-            </div>
-            <div>
-              <p className="font-semibold text-primary">ISO</p>
-              <p className="text-sm text-muted-foreground">International Organization for Standardization</p>
-            </div>
-            <div>
-              <p className="font-semibold text-primary">DIN</p>
-              <p className="text-sm text-muted-foreground">Deutsches Institut für Normung (German Standards)</p>
-            </div>
-            <div>
-              <p className="font-semibold text-primary">UNI</p>
-              <p className="text-sm text-muted-foreground">Ente Nazionale di Unificazione (Italian Standards)</p>
-            </div>
-            <div>
-              <p className="font-semibold text-primary">BS</p>
-              <p className="text-sm text-muted-foreground">British Standards Institution</p>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { code: "ASTM", full: "American Society for Testing & Materials" },
+              { code: "ASME", full: "American Society of Mechanical Engineers" },
+              { code: "ISO", full: "International Organization for Standardization" },
+              { code: "DIN", full: "Deutsches Institut für Normung (Germany)" },
+              { code: "BS", full: "British Standards Institution" },
+              { code: "IS", full: "Bureau of Indian Standards" },
+            ].map(({ code, full }) => (
+              <div key={code}>
+                <p className="font-semibold text-primary text-sm">{code}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{full}</p>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Material Grades Quick Reference */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-6 p-6 bg-card rounded-lg border border-border"
+        >
+          <h4 className="font-heading text-lg font-semibold text-foreground mb-4">Material Grades Quick Reference</h4>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+            {[
+              { grade: "MS / Mild Steel", spec: "IS 2062 / ASTM A36", use: "General purpose, low-stress" },
+              { grade: "Carbon Steel", spec: "AISI 1045 / DIN C45", use: "Machinery, structural" },
+              { grade: "High Tensile (8.8/10.9/12.9)", spec: "ISO 898-1", use: "Structural, heavy engineering" },
+              { grade: "ASTM A193 B7", spec: "42CrMo4 / AISI 4140", use: "Pressure vessels, flanges, high-temp" },
+              { grade: "ASTM A194 2H", spec: "Medium carbon alloy", use: "Mating nuts for A193 B7 studs" },
+              { grade: "SS 304 (A2)", spec: "18-8 Austenitic SS", use: "General corrosion resistance" },
+              { grade: "SS 316 (A4)", spec: "18-10 Mo Austenitic SS", use: "Marine, chemical, food grade" },
+              { grade: "SS 202", spec: "Cr-Mn Austenitic SS", use: "General corrosion, economy grade" },
+              { grade: "SS 410", spec: "Martensitic SS", use: "Moderate corrosion + strength" },
+              { grade: "Alloy Steel (B16/L7)", spec: "Cr-Mo-V alloy", use: "High-temp, pressure service" },
+              { grade: "Brass (CuZn)", spec: "CW614N / C36000", use: "Electrical, decorative, marine" },
+              { grade: "Titanium (Grade 2/5)", spec: "ASTM B348 / AMS 4928", use: "Aerospace, lightweight, corrosion" },
+              { grade: "Inconel 625 / 718", spec: "ASTM B446 / B637", use: "Extreme temp, superalloy service" },
+              { grade: "Monel 400 / K500", spec: "ASTM B164 / B865", use: "Seawater, acids, chemical plant" },
+              { grade: "Copper (C11000)", spec: "ASTM B152", use: "Electrical, plumbing, heat exchangers" },
+            ].map(({ grade, spec, use }) => (
+              <div key={grade} className="p-3 rounded-md bg-secondary/40 border border-border/50">
+                <div className="font-semibold text-primary">{grade}</div>
+                <div className="text-muted-foreground font-mono mt-0.5">{spec}</div>
+                <div className="text-foreground/70 mt-0.5">{use}</div>
+              </div>
+            ))}
           </div>
         </motion.div>
       </div>

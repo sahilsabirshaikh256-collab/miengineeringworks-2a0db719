@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Search, X, Package, Factory, Award } from "lucide-react";
-import { api, type Product, type Industry, type Standard } from "@/lib/api";
+import { productsData, industriesData, standardsData } from "@/data/staticData";
 
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [q, setQ] = useState("");
   const nav = useNavigate();
-  const { data: products = [] } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products"), enabled: open });
-  const { data: industries = [] } = useQuery<Industry[]>({ queryKey: ["/api/industries"], queryFn: () => api("/api/industries"), enabled: open });
-  const { data: standards = [] } = useQuery<Standard[]>({ queryKey: ["/api/standards"], queryFn: () => api("/api/standards"), enabled: open });
 
   useEffect(() => {
     if (open) setQ("");
@@ -20,20 +16,20 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
 
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return { products: products.slice(0, 5), industries: industries.slice(0, 5), standards: standards.slice(0, 5) };
+    if (!s) return { products: productsData.slice(0, 5), industries: industriesData.slice(0, 5), standards: standardsData.slice(0, 5) };
     const m = (t: string) => t?.toLowerCase().includes(s);
     return {
-      products: products.filter((p) => m(p.name) || m(p.description) || m(p.standard)).slice(0, 8),
-      industries: industries.filter((i) => m(i.name) || m(i.description)).slice(0, 8),
-      standards: standards.filter((st) => m(st.code) || m(st.name) || m(st.description)).slice(0, 8),
+      products: productsData.filter((p) => m(p.name) || m(p.description) || m(p.standard)).slice(0, 8),
+      industries: industriesData.filter((i) => m(i.name) || m(i.description)).slice(0, 8),
+      standards: standardsData.filter((st) => m(st.code) || m(st.name) || m(st.description)).slice(0, 8),
     };
-  }, [q, products, industries, standards]);
+  }, [q]);
 
   if (!open) return null;
   const go = (path: string) => { onClose(); nav(path); };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-start justify-center p-4 pt-[10vh]" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] bg-black/90 flex items-start justify-center p-4 pt-[10vh]" onClick={onClose}>
       <div className="bg-card w-full max-w-2xl rounded-xl border border-border shadow-elegant overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
           <Search className="w-5 h-5 text-primary" />

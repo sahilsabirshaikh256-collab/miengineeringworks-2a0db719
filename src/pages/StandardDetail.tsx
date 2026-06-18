@@ -1,19 +1,15 @@
 import { Link, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { api, type Standard } from "@/lib/api";
+import { standardsData } from "@/data/staticData";
+import { resolveImage } from "@/utils/resolveImage";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const StandardDetail = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { data: s, isLoading } = useQuery<Standard>({ queryKey: ["/api/standards", slug], queryFn: () => api(`/api/standards/${slug}`) });
-
-  if (isLoading) return (
-    <PageTransition><Header /><div className="min-h-[60vh] flex items-center justify-center">Loading…</div><Footer /></PageTransition>
-  );
+  const s = standardsData.find((x) => x.slug === slug);
 
   if (!s) return (
     <PageTransition>
@@ -30,14 +26,35 @@ const StandardDetail = () => {
 
   return (
     <PageTransition>
-      <Helmet>
-        <title>{`${s.code} — ${s.name} | M.I. Engineering Works`}</title>
-        <meta name="description" content={s.description.slice(0, 160)} />
-      </Helmet>
+      <SEO
+        title={`${s.code} Fastener Standards — ${s.name} | M.I. Engineering Works`}
+        description={`${s.description.slice(0, 155)} M.I. Engineering Works Mumbai supplies ${s.code} certified fasteners across India.`}
+        keywords={[
+          `${s.code} fasteners`,
+          `${s.code} standard fasteners`,
+          `${s.code} fasteners manufacturer`,
+          `${s.code} certified fasteners supplier`,
+          `${s.code} bolts nuts India`,
+          `${s.code} fastener manufacturer Mumbai`,
+          `${s.name} fasteners`,
+          `${s.code} compliant fasteners`,
+        ]}
+        path={`/standards/${s.slug}`}
+        breadcrumbs={[
+          { name: "Standards", path: "/standards" },
+          { name: s.code, path: `/standards/${s.slug}` },
+        ]}
+        articleSchema={{
+          "@type": "TechArticle",
+          headline: `${s.code} Fastener Standards — ${s.name}`,
+          description: s.description.slice(0, 200),
+          about: `${s.code} (${s.name}) certified fasteners manufactured and supplied by M.I. Engineering Works, Mumbai, India.`,
+        }}
+      />
       <Header />
 
       <section className="relative h-[40vh] md:h-[50vh] overflow-hidden bg-gradient-dark">
-        {s.image && <img src={s.image} alt={s.code} className="absolute inset-0 w-full h-full object-cover opacity-40" />}
+        {s.image && <img src={resolveImage("standard", s.slug, s.image)} alt={s.code} className="absolute inset-0 w-full h-full object-cover opacity-40" />}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         <div className="container relative z-10 h-full flex flex-col justify-end pb-12 text-primary-foreground">
           <Link to="/standards" data-testid="link-back-standards" className="inline-flex items-center gap-1 text-primary mb-4 hover:underline w-fit">
@@ -81,7 +98,7 @@ const StandardDetail = () => {
                 <ul className="space-y-2">
                   {s.applications.map((a, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />{a}
+                      <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" /> {a}
                     </li>
                   ))}
                 </ul>
@@ -89,16 +106,22 @@ const StandardDetail = () => {
             )}
             {s.materials?.length > 0 && (
               <div>
-                <h2 className="font-heading text-xl font-bold text-foreground mb-3">Material Grades</h2>
+                <h2 className="font-heading text-xl font-bold text-foreground mb-3">Materials Covered</h2>
                 <ul className="space-y-2">
                   {s.materials.map((m, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary" />{m}
+                      <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" /> {m}
                     </li>
                   ))}
                 </ul>
               </div>
             )}
+          </div>
+
+          <div className="mt-12">
+            <Link to="/standards" className="inline-flex items-center gap-2 px-6 py-3 rounded-md border-2 border-primary text-primary font-semibold hover:bg-primary hover:text-primary-foreground transition">
+              <ArrowLeft className="w-4 h-4" /> All Standards
+            </Link>
           </div>
         </div>
       </section>

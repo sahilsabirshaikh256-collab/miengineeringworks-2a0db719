@@ -1,36 +1,38 @@
-import "dotenv/config";
-import { drizzle } from "drizzle-orm/node-postgres";
-import pkg from "pg";
-import * as schema from "../shared/schema";
+import { db } from "./firebase.js";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  query,
+  where,
+  limit,
+  doc,
+} from "firebase/firestore";
 
-const { Pool } = pkg;
+export async function initDb() {
+  const bcrypt = await import("bcryptjs");
+  const password = process.env.ADMIN_PASSWORD || "admin@MI2024";
+  const hash = await bcrypt.default.hash(password, 10);
 
-const databaseUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  const usernames = (process.env.ADMIN_USERNAME || "miengineering17@gmail.com")
+    .split(",")
+    .map((u) => u.trim().toLowerCase())
+    .filter(Boolean);
 
-if (!databaseUrl) {
-  // Log a clear warning instead of throwing — prevents the Vercel function from
-  // crashing at import time. Errors surface when the first DB query is attempted.
-  console.error(
-    "[db] WARNING: DATABASE_URL or POSTGRES_URL is not set.\n" +
-    "     Admin login will use the ADMIN_PASSWORD env var as fallback.\n" +
-    "     To enable full database features on Vercel, set DATABASE_URL to a\n" +
-    "     public PostgreSQL URL (e.g. Neon: https://neon.tech, Supabase: https://supabase.com)"
-  );
+  try {
+    for (const username of usernames) {
+      const q = query(collection(db, "adminUsers"), where("username", "==", username), limit(1));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        await addDoc(collection(db, "adminUsers"), { username, passwordHash: hash });
+        console.log("[db] Admin seeded:", username);
+      } else {
+        await updateDoc(doc(db, "adminUsers", snap.docs[0].id), { passwordHash: hash });
+        console.log("[db] Admin password synced:", username);
+      }
+    }
+  } catch (err: any) {
+    console.warn("[db] Firebase admin sync skipped:", err?.code || err?.message);
+  }
 }
-
-export const pool = new Pool({
-  connectionString: databaseUrl || "postgresql://none:none@127.0.0.1:5432/none",
-  ssl: databaseUrl ? {
-    rejectUnauthorized: false,
-  } : false,
-  // Keep timeouts short on serverless — Vercel functions timeout at 10s by default.
-  connectionTimeoutMillis: 5000,
-  idleTimeoutMillis: 8000,
-  max: 3,
-});
-
-pool.on("error", (err) => {
-  console.error("[db] Pool error:", err.message);
-});
-
-export const db = drizzle(pool, { schema });

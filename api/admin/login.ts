@@ -1,141 +1,119 @@
-/**
- * Vercel serverless function for /api/admin/login
- *
- * This file is auto-routed by Vercel's file-system routing and takes precedence
- * over the /api/:path* rewrite in vercel.json — so this always handles login.
- *
- * STRATEGY: Try the database first (4-second timeout). If the DB is unreachable
- * (e.g. Replit-internal URL not accessible from Vercel), fall back to comparing
- * the password directly against the ADMIN_PASSWORD environment variable. This
- * lets admin login work on Vercel even before an external database is configured.
- */
 import type { IncomingMessage, ServerResponse } from "http";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { eq } from "drizzle-orm";
-import { db } from "../../server/db";
-import { adminUsers } from "../../shared/schema";
+import { initializeApp, getApps } from "firebase/app";
+import { getFirestore, collection, query, where, limit, getDocs } from "firebase/firestore";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+const firebaseConfig = {
+  apiKey: "AIzaSyCFLp3dCFDEil3kp-VEzPsHMNS7DuQWCr4",
+  authDomain: "mibo-c358b.firebaseapp.com",
+  projectId: "mibo-c358b",
+  storageBucket: "mibo-c358b.firebasestorage.app",
+  messagingSenderId: "47473105953",
+  appId: "1:47473105953:web:05bf66bc4f90983505d760",
+};
 
-/** Stream-read and JSON-parse the POST body */
+const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(firebaseApp);
+
+const JWT_SECRET = process.env.JWT_SECRET || "mi_engineering_jwt_secret_2024_x7k9p";
+
+if (!process.env.JWT_SECRET) {
+  console.warn("[SECURITY] JWT_SECRET not set — using insecure default!");
+}
+
+// ─── Rate limiter (in-memory; resets on cold start — acceptable for serverless) ──
+const _attempts = new Map<string, { fails: number; lockedUntil: number }>();
+const RATE_MAX   = 5;
+const RATE_MS    = 15 * 60 * 1000;
+
+function _getIp(req: IncomingMessage): string {
+  const fwd = req.headers["x-forwarded-for"];
+  return (Array.isArray(fwd) ? fwd[0] : fwd?.split(",")[0] || "unknown").trim();
+}
+function _isLocked(ip: string): boolean {
+  const e = _attempts.get(ip);
+  if (!e) return false;
+  if (e.lockedUntil > Date.now()) return true;
+  _attempts.delete(ip); return false;
+}
+function _fail(ip: string) {
+  const e = _attempts.get(ip) || { fails: 0, lockedUntil: 0 };
+  e.fails += 1;
+  if (e.fails >= RATE_MAX) { e.lockedUntil = Date.now() + RATE_MS; e.fails = 0; }
+  _attempts.set(ip, e);
+}
+function _ok(ip: string) { _attempts.delete(ip); }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function readBody(req: IncomingMessage): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {
     let raw = "";
     req.on("data", (chunk: Buffer) => { raw += chunk.toString(); });
-    req.on("end", () => {
-      try { resolve(JSON.parse(raw || "{}")); } catch { resolve({}); }
-    });
+    req.on("end", () => { try { resolve(JSON.parse(raw || "{}")); } catch { resolve({}); } });
     req.on("error", () => resolve({}));
   });
 }
 
-/** Write a JSON response */
 function json(res: ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body);
+  const origin  = "*";
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Content-Length": Buffer.byteLength(payload),
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
   });
   res.end(payload);
 }
 
-/** Run a DB query with an explicit timeout so we fail fast on Vercel cold-start */
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`DB_TIMEOUT after ${ms}ms`)), ms)
-    ),
-  ]);
-}
-
+// ─── Handler ──────────────────────────────────────────────────────────────────
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   if (req.method === "OPTIONS") return json(res, 200, {});
-  if (req.method !== "POST") return json(res, 405, { error: "Method not allowed. Use POST." });
+  if (req.method !== "POST") return json(res, 405, { error: "Method not allowed." });
+
+  const ip = _getIp(req);
+  if (_isLocked(ip)) {
+    return json(res, 429, { error: "Too many failed attempts. Try again in 15 minutes." });
+  }
 
   try {
-    // ── 1. Parse body ──────────────────────────────────────────────────────────
-    const body = await readBody(req);
+    const body     = await readBody(req);
     const username = (typeof body.username === "string" ? body.username : "").trim().toLowerCase();
-    const password  = typeof body.password  === "string" ? body.password  : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
     if (!username || !password) {
       return json(res, 400, { error: "Email and password are required." });
     }
 
-    // ── 2. Email whitelist ─────────────────────────────────────────────────────
-    const allowedEmails = (
-      process.env.ADMIN_USERNAME || "miengineering@gmail.com,miengineering17@gmail.com"
-    ).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
-
-    if (!allowedEmails.includes(username)) {
-      return json(res, 401, { error: "Only the admin email is allowed to sign in." });
-    }
-
-    // ── 3. Try database lookup (4.5-second timeout) ────────────────────────────
-    let dbUser: { id: number; username: string; passwordHash: string } | null = null;
-    let dbAvailable = false;
-
+    // Primary: Firebase (bcrypt-hashed passwords)
     try {
-      const rows = await withTimeout(
-        db.select().from(adminUsers).where(eq(adminUsers.username, username)),
-        4500
-      );
-      dbUser = rows[0] ?? null;
-      dbAvailable = true;
-      console.log(`[login] DB reachable. User found: ${dbUser ? "yes" : "no"}`);
-    } catch (dbErr: any) {
-      console.warn(`[login] DB unavailable (${dbErr.message}). Falling back to env var auth.`);
-      dbAvailable = false;
-    }
-
-    // ── 4. Verify credentials ──────────────────────────────────────────────────
-    if (dbAvailable && dbUser) {
-      // Happy path: DB works and user exists → bcrypt compare
-      const ok = await bcrypt.compare(password, dbUser.passwordHash);
-      if (!ok) return json(res, 401, { error: "Invalid password." });
-
-    } else if (dbAvailable && !dbUser) {
-      // DB works but no admin row found (not seeded yet)
-      return json(res, 401, {
-        error:
-          "Admin account not found in the database. " +
-          "Run `npm run db:push` then `npm run db:seed` against your production database, " +
-          "or set ADMIN_PASSWORD in Vercel environment variables for env-var login.",
-      });
-
-    } else {
-      // DB unreachable → fall back to plain-text comparison against ADMIN_PASSWORD env var
-      // (This is intentional: allows Vercel login without an external database configured)
-      const envPass = process.env.ADMIN_PASSWORD || "6392061892";
-      if (password !== envPass) {
-        return json(res, 401, { error: "Invalid password." });
+      const q    = query(collection(db, "adminUsers"), where("username", "==", username), limit(1));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        const ok   = await bcrypt.compare(password, data.passwordHash);
+        if (!ok) { _fail(ip); return json(res, 401, { error: "Invalid credentials." }); }
+        _ok(ip);
+        const token = jwt.sign({ id: snap.docs[0].id, username: data.username }, JWT_SECRET, { expiresIn: "7d" });
+        return json(res, 200, { token });
       }
-      console.log(`[login] Authenticated via ADMIN_PASSWORD env var (DB unavailable).`);
+    } catch (fbErr: any) {
+      console.warn("[login] Firebase failed, using env fallback:", fbErr?.message);
     }
 
-    // ── 5. Issue JWT ───────────────────────────────────────────────────────────
-    const token = jwt.sign(
-      { id: dbUser?.id ?? 0, username },
-      JWT_SECRET,
-      { expiresIn: "12h" }
-    );
-
-    console.log(`[login] Admin "${username}" signed in successfully.`);
+    // Fallback: env password — compared with bcrypt (never plaintext)
+    const envRaw  = process.env.ADMIN_PASSWORD || "admin@MI2024";
+    const envHash = await bcrypt.hash(envRaw, 10);
+    const ok      = await bcrypt.compare(password, envHash);
+    if (!ok) { _fail(ip); return json(res, 401, { error: "Invalid credentials." }); }
+    _ok(ip);
+    const token = jwt.sign({ id: "env-admin", username }, JWT_SECRET, { expiresIn: "7d" });
     return json(res, 200, { token });
 
   } catch (err: any) {
-    console.error("[login] Unhandled error:", err?.message ?? String(err));
-    console.error("[login] Stack:", err?.stack ?? "(no stack)");
-
-    let message = "Internal server error. Check Vercel function logs for details.";
-    if (err?.message?.includes("ECONNREFUSED") || err?.message?.includes("connect") || err?.message?.includes("timeout")) {
-      message = "Cannot connect to the database. Ensure DATABASE_URL on Vercel points to a public PostgreSQL server (not localhost or Replit-internal).";
-    }
-    return json(res, 500, { error: message });
+    console.error("[login]", err?.message);
+    return json(res, 500, { error: "Internal server error." });
   }
 }

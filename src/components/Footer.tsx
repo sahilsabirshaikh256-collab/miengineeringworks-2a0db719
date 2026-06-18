@@ -2,8 +2,7 @@ import { useMemo, useState } from "react";
 import { Mail, Phone, MapPin, Send, CheckCircle2, Loader2, MessageCircle, Linkedin, Facebook, Twitter, Globe, Instagram, Youtube, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { api, type Product } from "@/lib/api";
+import { productsData } from "@/data/staticData";
 import { useSiteContent, SITE_CONTENT_DEFAULTS } from "@/hooks/useSiteContent";
 
 type SocialDef = { label: string; url: string; icon: string };
@@ -40,7 +39,7 @@ const ICON_COLORS: Record<string, string> = {
 
 const Footer = () => {
   const { content } = useSiteContent();
-  const { data: products = [] } = useQuery<Product[]>({ queryKey: ["/api/products"], queryFn: () => api("/api/products") });
+  const products = productsData;
   const brandName = (content["brand.name"] || "M.I. Engineering Works").trim();
   const gst = (content["company.gst"] || "27CBFPM8207D1ZR").trim();
   const email = (content["contact.email"] || "miengineering17@gmail.com").trim();
@@ -59,35 +58,18 @@ const Footer = () => {
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
-    try {
-      const r = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: formData.name,
-          email: formData.email,
-          phone: formData.phone || "N/A",
-          company: "",
-          message: formData.message,
-        }),
-      });
-      if (r.ok) {
-        setSubmitted(true);
-        setFormData({ name: "", email: "", phone: "", message: "" });
-      } else {
-        setError("Failed to send message. Please try again.");
-      }
-    } catch {
-      setError("Network error. Please try again later.");
-    } finally {
+    const subject = encodeURIComponent(`Fastener Enquiry from ${formData.name}`);
+    const body = encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || "N/A"}\n\nMessage:\n${formData.message}`);
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    setTimeout(() => {
       setLoading(false);
-    }
+      setSubmitted(true);
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    }, 800);
   };
 
   return (
@@ -106,7 +88,7 @@ const Footer = () => {
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <CheckCircle2 className="w-16 h-16 text-primary mb-4" />
                 <h4 className="font-heading text-xl font-bold text-gold-light mb-2">Thank You!</h4>
-                <p className="text-sm text-gold-light/60">Your enquiry has been delivered to our team. We'll get back to you shortly.</p>
+                <p className="text-sm text-gold-light/60">Your email client has opened with your message. Please send it to reach our team.</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,11 +106,10 @@ const Footer = () => {
                 <Field label="Message *">
                   <textarea required rows={4} value={formData.message} onChange={(e) => setFormData({ ...formData, message: e.target.value })} placeholder="Tell us about your requirements (product, size, quantity, grade…)" className={`${inputCls} resize-none`} data-testid="footer-input-message" />
                 </Field>
-                {error && <p className="text-sm text-red-400">{error}</p>}
                 <button type="submit" disabled={loading} data-testid="footer-button-send"
                   className="inline-flex items-center gap-2 bg-gradient-gold text-charcoal font-semibold py-3 px-8 rounded-lg hover:opacity-90 transition shadow-gold text-sm disabled:opacity-60">
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  {loading ? "Sending…" : "Send Enquiry"}
+                  {loading ? "Opening email…" : "Send Enquiry"}
                 </button>
               </form>
             )}
@@ -204,8 +185,8 @@ const Footer = () => {
               <li><Link to="/standards" className="hover:text-primary transition-colors">Standards</Link></li>
               <li><Link to="/specifications" className="hover:text-primary transition-colors">Specifications</Link></li>
               <li><Link to="/grade-chart" className="hover:text-primary transition-colors">Grade Chart</Link></li>
-              <li><Link to="/gallery" className="hover:text-primary transition-colors">Photos & Videos</Link></li>
-              <li><a href="/api/catalog.pdf" className="hover:text-primary transition-colors">Download Catalog</a></li>
+              <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
             </ul>
           </div>
 

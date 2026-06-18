@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence, MotionConfig } from "framer-motion";
 import { HelmetProvider } from "react-helmet-async";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -12,7 +12,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import BrandingHead from "./components/BrandingHead";
 import { useApplyBackgroundAnimation } from "@/hooks/useActiveAnimations";
 
-// Public pages — lazy loaded for faster initial paint
+// ── Public pages ──────────────────────────────────────────────────────────────
 const ProductDetail = lazy(() => import("./pages/ProductDetail.tsx"));
 const ProductsPage = lazy(() => import("./pages/ProductsPage.tsx"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage.tsx"));
@@ -25,34 +25,31 @@ const GradeChartPage = lazy(() => import("./pages/GradeChartPage.tsx"));
 const StandardsPage = lazy(() => import("./pages/StandardsPage.tsx"));
 const StandardDetail = lazy(() => import("./pages/StandardDetail.tsx"));
 const GalleryPage = lazy(() => import("./pages/GalleryPage.tsx"));
+const ImageEditorPage = lazy(() => import("./pages/ImageEditorPage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
-// Calculator is now an admin-only tool
-const CalculatorPage = lazy(() => import("./pages/CalculatorPage.tsx"));
-
-// Admin pages — lazy loaded (only ever opened by site owner)
+// ── Admin pages ───────────────────────────────────────────────────────────────
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin.tsx"));
-const AdminMedia = lazy(() => import("./pages/admin/AdminMedia.tsx"));
-const AdminContent = lazy(() => import("./pages/admin/AdminContent.tsx"));
-const AdminSections = lazy(() => import("./pages/admin/AdminSections.tsx"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard.tsx"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts.tsx"));
 const AdminCategories = lazy(() => import("./pages/admin/AdminCategories.tsx"));
 const AdminIndustries = lazy(() => import("./pages/admin/AdminIndustries.tsx"));
 const AdminStandards = lazy(() => import("./pages/admin/AdminStandards.tsx"));
 const AdminContacts = lazy(() => import("./pages/admin/AdminContacts.tsx"));
+const AdminMedia = lazy(() => import("./pages/admin/AdminMedia.tsx"));
+const AdminContent = lazy(() => import("./pages/admin/AdminContent.tsx"));
+const AdminSections = lazy(() => import("./pages/admin/AdminSections.tsx"));
+const AdminBranding = lazy(() => import("./pages/admin/AdminBranding.tsx"));
+const AdminAnimations = lazy(() => import("./pages/admin/AdminAnimations.tsx"));
 const AdminGradeChart = lazy(() => import("./pages/admin/AdminGradeChart.tsx"));
 const AdminSpecifications = lazy(() => import("./pages/admin/AdminSpecifications.tsx"));
 const AdminCatalog = lazy(() => import("./pages/admin/AdminCatalog.tsx"));
-const AdminBranding = lazy(() => import("./pages/admin/AdminBranding.tsx"));
-const AdminAnimations = lazy(() => import("./pages/admin/AdminAnimations.tsx"));
 const AdminLedger = lazy(() => import("./pages/admin/AdminLedger.tsx"));
 const AdminLedgerCustomer = lazy(() => import("./pages/admin/AdminLedgerCustomer.tsx"));
-const AdminApplications = lazy(() => import("./pages/admin/AdminApplications.tsx"));
-const AdminApplicationUseCases = lazy(() => import("./pages/admin/AdminApplicationUseCases.tsx"));
 const AdminMI = lazy(() => import("./pages/admin/AdminMI.tsx"));
 const AdminBackups = lazy(() => import("./pages/admin/AdminBackups.tsx"));
-const RequireAdmin = lazy(() => import("./pages/admin/RequireAdmin.tsx"));
+const AdminApplications = lazy(() => import("./pages/admin/AdminApplications.tsx"));
+const RequireAdminBase = lazy(() => import("./pages/admin/RequireAdmin.tsx"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,7 +57,7 @@ const queryClient = new QueryClient({
       staleTime: 60_000,
       gcTime: 5 * 60_000,
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: 0,
     },
   },
 });
@@ -71,12 +68,22 @@ const RouteFallback = () => (
   </div>
 );
 
+// Protected admin wrapper — renders <Outlet /> for nested routes
+const AdminGuard = () => (
+  <Suspense fallback={<RouteFallback />}>
+    <RequireAdminBase>
+      <Outlet />
+    </RequireAdminBase>
+  </Suspense>
+);
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
     <AnimatePresence mode="wait">
       <Suspense fallback={<RouteFallback />}>
         <Routes location={location} key={location.pathname}>
+          {/* ── Public ─────────────────────────────────────────── */}
           <Route path="/" element={<Index />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/category/:category" element={<CategoryPage />} />
@@ -87,32 +94,36 @@ const AnimatedRoutes = () => {
           <Route path="/applications" element={<ApplicationsPage />} />
           <Route path="/standards" element={<StandardsPage />} />
           <Route path="/standards/:slug" element={<StandardDetail />} />
-          <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/specifications" element={<SpecificationsPage />} />
           <Route path="/grade-chart" element={<GradeChartPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/image-editor" element={<ImageEditorPage />} />
 
+          {/* ── Admin auth ──────────────────────────────────────── */}
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/calculator" element={<RequireAdmin><CalculatorPage /></RequireAdmin>} />
-          <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-          <Route path="/admin/products" element={<RequireAdmin><AdminProducts /></RequireAdmin>} />
-          <Route path="/admin/categories" element={<RequireAdmin><AdminCategories /></RequireAdmin>} />
-          <Route path="/admin/industries" element={<RequireAdmin><AdminIndustries /></RequireAdmin>} />
-          <Route path="/admin/standards" element={<RequireAdmin><AdminStandards /></RequireAdmin>} />
-          <Route path="/admin/media" element={<RequireAdmin><AdminMedia /></RequireAdmin>} />
-          <Route path="/admin/content" element={<RequireAdmin><AdminContent /></RequireAdmin>} />
-          <Route path="/admin/sections" element={<RequireAdmin><AdminSections /></RequireAdmin>} />
-          <Route path="/admin/contacts" element={<RequireAdmin><AdminContacts /></RequireAdmin>} />
-          <Route path="/admin/grade-chart" element={<RequireAdmin><AdminGradeChart /></RequireAdmin>} />
-          <Route path="/admin/specifications" element={<RequireAdmin><AdminSpecifications /></RequireAdmin>} />
-          <Route path="/admin/catalog" element={<RequireAdmin><AdminCatalog /></RequireAdmin>} />
-          <Route path="/admin/branding" element={<RequireAdmin><AdminBranding /></RequireAdmin>} />
-          <Route path="/admin/animations" element={<RequireAdmin><AdminAnimations /></RequireAdmin>} />
-          <Route path="/admin/ledger" element={<RequireAdmin><AdminLedger /></RequireAdmin>} />
-          <Route path="/admin/ledger/:name" element={<RequireAdmin><AdminLedgerCustomer /></RequireAdmin>} />
-          <Route path="/admin/applications" element={<RequireAdmin><AdminApplications /></RequireAdmin>} />
-          <Route path="/admin/applications/:slug" element={<RequireAdmin><AdminApplicationUseCases /></RequireAdmin>} />
-          <Route path="/admin/mi" element={<RequireAdmin><AdminMI /></RequireAdmin>} />
-          <Route path="/admin/backups" element={<RequireAdmin><AdminBackups /></RequireAdmin>} />
+
+          {/* ── Protected admin ─────────────────────────────────── */}
+          <Route path="/admin" element={<AdminGuard />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="industries" element={<AdminIndustries />} />
+            <Route path="standards" element={<AdminStandards />} />
+            <Route path="contacts" element={<AdminContacts />} />
+            <Route path="media" element={<AdminMedia />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="sections" element={<AdminSections />} />
+            <Route path="branding" element={<AdminBranding />} />
+            <Route path="animations" element={<AdminAnimations />} />
+            <Route path="grade-chart" element={<AdminGradeChart />} />
+            <Route path="specifications" element={<AdminSpecifications />} />
+            <Route path="catalog" element={<AdminCatalog />} />
+            <Route path="ledger" element={<AdminLedger />} />
+            <Route path="ledger/customers" element={<AdminLedgerCustomer />} />
+            <Route path="mi" element={<AdminMI />} />
+            <Route path="backups" element={<AdminBackups />} />
+            <Route path="applications" element={<AdminApplications />} />
+          </Route>
 
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -129,7 +140,6 @@ const SiteEffects = () => {
 const App = () => (
   <HelmetProvider>
     <QueryClientProvider client={queryClient}>
-      {/* reducedMotion="always" disables scroll-triggered & all motion animations so pages open instantly */}
       <MotionConfig reducedMotion="always">
         <TooltipProvider>
           <Toaster />

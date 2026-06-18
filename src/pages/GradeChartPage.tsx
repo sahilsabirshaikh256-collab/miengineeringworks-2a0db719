@@ -2,17 +2,33 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import GradeChartSection from "@/components/GradeChartSection";
 import PageTransition from "@/components/PageTransition";
-import { Helmet } from "react-helmet-async";
+import SEO from "@/components/SEO";
 
 const GradeChartPage = () => {
   return (
     <PageTransition>
-      <Helmet>
-        <title>Fastener Grade Chart — ASTM A193 B7, B16, L7, B8, B8M & All Grades | M.I. Engineering Works</title>
-        <meta name="description" content="Complete fastener grade chart — ASTM A193 B7, B16, L7, B8, B8M, Inconel, Hastelloy, Duplex, Monel, Titanium. Tensile strength, yield, hardness & dimensional standards. M.I. Engineering Works Mumbai." />
-        <meta name="keywords" content="fastener grade chart, ASTM A193 B7 grade chart, bolt grades, nut grades, ASTM A194 2H, stud bolt grades, B7 B16 L7 B8 B8M grades, M.I. Engineering Works" />
-        <link rel="canonical" href="https://miengineeringworks.lovable.app/grade-chart" />
-      </Helmet>
+      <SEO
+        title="Fastener Grade Chart — ASTM, DIN, ISO, SAE Grades | M.I. Engineering Works"
+        description="Complete fastener grade chart — ASTM A193 B7/B16/L7/B8/B8M, ISO 8.8/10.9/12.9, SAE Grade 2/5/8, Stainless SS 304/316, Duplex 2205. Tensile strength, yield, hardness by material and standard. M.I. Engineering Works Mumbai."
+        keywords={[
+          "fastener grade chart",
+          "bolt grade chart",
+          "nut grade chart",
+          "ASTM fastener grades",
+          "ISO property class chart",
+          "DIN fastener grades",
+          "SAE bolt grades",
+          "stainless steel fastener grades",
+          "alloy steel fastener grades",
+          "carbon steel fastener grades",
+          "high tensile bolt grades",
+          "fastener mechanical properties",
+          "bolt tensile strength chart",
+          "fastener yield strength",
+          "hardness chart fasteners",
+        ]}
+        path="/grade-chart"
+      />
       <Header />
       <GradeChartSection />
       <Footer />
