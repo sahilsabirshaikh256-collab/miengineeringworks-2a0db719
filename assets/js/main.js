@@ -265,6 +265,12 @@
     if (!m) { m = document.createElement("meta"); m.name = name; document.head.appendChild(m); }
     m.content = content;
   }
+  function setProp(prop, content) {
+    var m = document.querySelector('meta[property="' + prop + '"]');
+    if (!m) { m = document.createElement("meta"); m.setAttribute("property", prop); document.head.appendChild(m); }
+    m.setAttribute("content", content);
+  }
+
   function injectJsonLd(obj) {
     var s = document.createElement("script");
     s.type = "application/ld+json";
