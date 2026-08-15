@@ -107,6 +107,27 @@
         cats.map(function (c) { return '<option value="' + c + '">' + c + "</option>"; }).join("");
     }
 
+    // Support ?q= deep links (used by the sitewide schema.org SearchAction)
+    var qParam = new URLSearchParams(location.search).get("q");
+    if (qParam && search) search.value = qParam;
+
+    // ItemList structured data so AI engines and Google can read the catalogue
+    injectJsonLd({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Industrial Fasteners Catalogue — M.I. Engineering Works, Mumbai",
+      numberOfItems: PRODUCTS.length,
+      itemListElement: PRODUCTS.map(function (p, i) {
+        return {
+          "@type": "ListItem",
+          position: i + 1,
+          url: "https://miengineeringworks.com/product.html?slug=" + p.slug,
+          name: p.name + " — " + p.standard
+        };
+      })
+    });
+
+
     function render() {
       var q = (search && search.value || "").toLowerCase().trim();
       var cat = filter && filter.value || "";
