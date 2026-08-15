@@ -107,6 +107,27 @@
         cats.map(function (c) { return '<option value="' + c + '">' + c + "</option>"; }).join("");
     }
 
+    // Support ?q= deep links (used by the sitewide schema.org SearchAction)
+    var qParam = new URLSearchParams(location.search).get("q");
+    if (qParam && search) search.value = qParam;
+
+    // ItemList structured data so AI engines and Google can read the catalogue
+    injectJsonLd({
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: "Industrial Fasteners Catalogue — M.I. Engineering Works, Mumbai",
+      numberOfItems: PRODUCTS.length,
+      itemListElement: PRODUCTS.map(function (p, i) {
+        return {
+          "@type": "ListItem",
+          position: i + 1,
+          url: "https://miengineeringworks.com/product.html?slug=" + p.slug,
+          name: p.name + " — " + p.standard
+        };
+      })
+    });
+
+
     function render() {
       var q = (search && search.value || "").toLowerCase().trim();
       var cat = filter && filter.value || "";
@@ -137,11 +158,45 @@
       return;
     }
 
-    document.title = p.name + " — " + p.standard + " Manufacturer & Supplier in Mumbai | M.I. Engineering Works";
-    setMeta("description", p.description.slice(0, 155));
-    setMeta("keywords", [p.name, p.standard, p.material].concat(p.grades).join(", "));
+    var pageUrl = "https://miengineeringworks.com/product.html?slug=" + p.slug;
+    var pageTitle = p.name + " — " + p.standard + " Manufacturer & Supplier in Mumbai | M.I. Engineering Works";
+    var pageDesc = p.description.slice(0, 155);
+    document.title = pageTitle;
+    setMeta("description", pageDesc);
+    setMeta("keywords", [p.name, p.standard, p.material, p.name + " manufacturer in Mumbai", p.name + " supplier India", p.name + " exporter"].concat(p.grades).join(", "));
+    setMeta("twitter:title", pageTitle);
+    setMeta("twitter:description", pageDesc);
+    setMeta("twitter:image", "https://miengineeringworks.com" + p.img);
+    setProp("og:title", pageTitle);
+    setProp("og:description", pageDesc);
+    setProp("og:url", pageUrl);
+    setProp("og:type", "product");
+    setProp("og:image", "https://miengineeringworks.com" + p.img);
     var canonical = document.querySelector('link[rel="canonical"]');
-    if (canonical) canonical.href = "https://miengineeringworks.com/product.html?slug=" + p.slug;
+    if (canonical) canonical.href = pageUrl;
+
+    injectJsonLd({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://miengineeringworks.com/" },
+        { "@type": "ListItem", position: 2, name: "Products", item: "https://miengineeringworks.com/products.html" },
+        { "@type": "ListItem", position: 3, name: p.name, item: pageUrl }
+      ]
+    });
+
+    injectJsonLd({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        { "@type": "Question", name: "What material and grades are used for " + p.name + "?", acceptedAnswer: { "@type": "Answer", text: p.name + " are manufactured in " + p.material + ". Grades available: " + p.grades.join(", ") + "." } },
+        { "@type": "Question", name: "What sizes of " + p.name + " are available?", acceptedAnswer: { "@type": "Answer", text: "Sizes " + p.sizes + ", lengths " + p.length + ". Thread types: " + p.threads + "." } },
+        { "@type": "Question", name: "Where can I buy " + p.name + " in Mumbai, India?", acceptedAnswer: { "@type": "Answer", text: "M.I. Engineering Works manufactures and supplies " + p.name + " from 301, 01, Mehar Iron Bazar, Iron Market, Khedwadi, Girgaon, Mumbai 400004, India. Call +91 98199 72301 or email mienginering17@gmail.com for a quote within 24 hours. We supply across India and export worldwide." } },
+        { "@type": "Question", name: "What are typical applications of " + p.name + "?", acceptedAnswer: { "@type": "Answer", text: p.applications.join(", ") + "." } }
+      ]
+    });
+
+
 
     host.innerHTML =
       '<div class="container">' +
@@ -210,6 +265,12 @@
     if (!m) { m = document.createElement("meta"); m.name = name; document.head.appendChild(m); }
     m.content = content;
   }
+  function setProp(prop, content) {
+    var m = document.querySelector('meta[property="' + prop + '"]');
+    if (!m) { m = document.createElement("meta"); m.setAttribute("property", prop); document.head.appendChild(m); }
+    m.setAttribute("content", content);
+  }
+
   function injectJsonLd(obj) {
     var s = document.createElement("script");
     s.type = "application/ld+json";
