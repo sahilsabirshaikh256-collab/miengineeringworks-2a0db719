@@ -321,16 +321,42 @@
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var d = new FormData(form);
-      var subject = "Fastener enquiry from " + (d.get("name") || "website visitor");
-      var body =
-        "Name: " + (d.get("name") || "") + "\n" +
-        "Company: " + (d.get("company") || "") + "\n" +
-        "Email: " + (d.get("email") || "") + "\n" +
-        "Phone: " + (d.get("phone") || "") + "\n\n" +
-        "Message:\n" + (d.get("message") || "");
-      window.location.href = "mailto:" + COMPANY.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
       var status = document.getElementById("form-status");
-      if (status) status.textContent = "Opening your email app with the enquiry pre-filled. You can also call " + COMPANY.phone + ".";
+      var submitBtn = form.querySelector('[type="submit"]');
+      var subject = "Fastener enquiry from " + (d.get("name") || "website visitor");
+      var payload = {
+        _subject: subject,
+        _template: "table",
+        _captcha: "false",
+        name: d.get("name") || "",
+        company: d.get("company") || "",
+        email: d.get("email") || "",
+        phone: d.get("phone") || "",
+        message: d.get("message") || ""
+      };
+      if (status) status.textContent = "Sending your enquiry…";
+      if (submitBtn) submitBtn.disabled = true;
+      fetch("https://formsubmit.co/ajax/" + COMPANY.email, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(payload)
+      })
+        .then(function (r) { if (!r.ok) throw new Error("send failed"); return r.json(); })
+        .then(function () {
+          if (status) status.textContent = "Thank you! Your enquiry has been sent — we reply within one working day. You can also call " + COMPANY.phone + ".";
+          form.reset();
+        })
+        .catch(function () {
+          var body =
+            "Name: " + payload.name + "\n" +
+            "Company: " + payload.company + "\n" +
+            "Email: " + payload.email + "\n" +
+            "Phone: " + payload.phone + "\n\n" +
+            "Message:\n" + payload.message;
+          window.location.href = "mailto:" + COMPANY.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+          if (status) status.textContent = "Opening your email app with the enquiry pre-filled. You can also call " + COMPANY.phone + ".";
+        })
+        .finally(function () { if (submitBtn) submitBtn.disabled = false; });
     });
   }
 
