@@ -320,11 +320,16 @@ textarea { min-height: 130px; resize: vertical; }
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 .site-footer { background: #08090b; border-top: 1px solid var(--border); padding: 58px 0 26px; }
+.site-footer .grid-4 { grid-template-columns: 1.15fr 0.8fr 0.8fr 1.45fr; }
 .site-footer h4 { font-family: var(--font-head); font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold-light); }
 .site-footer ul { list-style: none; margin: 0; padding: 0; }
 .site-footer li { margin-bottom: 8px; }
 .site-footer a { color: var(--muted); font-size: 0.9rem; transition: color 0.2s ease; }
 .site-footer a:hover { color: var(--gold); }
+.footer-location-list { display: grid; gap: 8px; margin: 0 0 14px; }
+.footer-location { border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 9px 10px; background: rgba(255, 255, 255, 0.04); }
+.footer-location strong { display: block; margin-bottom: 3px; color: #ffffff; font-size: 0.82rem; }
+.footer-location address { color: #b6bac2; font-size: 0.8rem; font-style: normal; line-height: 1.45; }
 .socials { display: flex; gap: 10px; margin-top: 14px; }
 .socials a {
   width: 38px; height: 38px;
